@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard Server Vitals</title>
+</head>
+<body>
+    <h1>Dashboard de Monitorización</h1>
+    <p th:text="${mensaje}">Mensaje de bienvenida</p>
+    
+
+    <div id="metrics">
+        
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Recurso</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody>
+                
+                <tr>
+                    <td>CPU</td>
+                    <td>45%</td>
+                </tr>
+                <tr>
+                    <td>Memoria</td>
+                    <td>68%</td>
+                </tr>
+                <tr>
+                    <td>Disco</td>
+                    <td>70%</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
