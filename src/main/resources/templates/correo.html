@@ -1,121 +1,108 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Configuración de Correo</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVITS - Correo</title>
 
-    <!-- Bootstrap + FontAwesome -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- Estilos personalizados -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
-    <style>
-        .correo-container {
-            margin-left: 260px;
-            padding: 40px;
-            background-color: #f9fafb;
-            min-height: 100vh;
-        }
-
-        .correo-card {
-            background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-            padding: 30px;
-            max-width: 800px;
-            margin: auto;
-        }
-
-        .correo-title {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 30px;
-        }
-
-        .save-btn {
-            background-color: #4CAF50;
-            border: none;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 16px;
-        }
-
-        .save-btn:hover {
-            background-color: #45a049;
-        }
-
-        .alert {
-            max-width: 800px;
-            margin: 20px auto;
-        }
-    </style>
 </head>
 <body>
-
-<!-- Sidebar -->
-<div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <h4>SVITS</h4>
-        <button class="toggle-btn" id="toggleSidebar">
-            <i class="fas fa-bars"></i>
-        </button>
-    </div>
-
-    <div class="sidebar-menu">
-        <a href="/umbral" class="menu-item">
-            <i class="fas fa-sliders-h"></i>
-            <span>Umbrales</span>
-        </a>
-        <a href="/correo" class="menu-item active">
-            <i class="fas fa-envelope"></i>
-            <span>Correo</span>
-        </a>
-        <a href="/dashboard" class="menu-item">
-            <i class="fas fa-tachometer-alt"></i>
-            <span>Dashboard</span>
-        </a>
-    </div>
-</div>
-
-<!-- Contenido principal -->
-<div class="correo-container">
-
-    <!-- Mensaje de éxito-->
-    <div th:if="${mensaje}" class="alert alert-success">
-        <span th:text="${mensaje}">¡Umbral guardado y alerta enviada!</span>
-    </div>
-
-    <div class="correo-card">
-        <div class="correo-title">Historial de Alertas</div>
-
-        <div class="table-responsive mt-4">
-            <table class="table table-bordered table-striped align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Tipo de Recurso</th>
-                        <th>Valor Detectado</th>
-                        <th>Fecha de Envío</th>
-                        <th>Correo Destino</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    
-                    <tr th:each="alerta : ${alertas}">
-                        <td th:text="${alerta.tipoRecurso}">CPU</td>
-                        <td th:text="${alerta.valorDetectado}">75%</td>
-                        <td th:text="${alerta.fechaEnvio}">2025-04-05 14:30</td>
-                        <td th:text="${alerta.correoDestino}">ejemplo@dominio.com</td>
-                    </tr>
-                </tbody>
-            </table>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h4>SVITS</h4>
+            <button class="toggle-btn" id="toggleSidebar" aria-label="Toggle sidebar">
+                <i class="fas fa-bars" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="sidebar-menu">
+            <a href="/umbrales" class="menu-item">
+                <i class="fas fa-sliders-h" aria-hidden="true"></i>
+                <span>Umbrales</span>
+            </a>
+            <a href="/correo" class="menu-item active">
+                <i class="fas fa-envelope" aria-hidden="true"></i>
+                <span>Correo</span>
+            </a>
+            <a href="/dashboard" class="menu-item">
+                <i class="fas fa-tachometer-alt" aria-hidden="true"></i>
+                <span>Dashboard</span>
+            </a>
         </div>
     </div>
-</div>
 
-<!-- Scripts -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <div class="main-content" id="mainContent">
+        <header class="dashboard-header">
+            <h1>SVITS - Envío de Alertas por Correo</h1>
+            <div class="server-info">
+                <div id="serverName">Servidor: <strong id="serverNameValue">Conectando...</strong></div>
+                <div class="server-status status-connecting" id="serverStatus">Conectando</div>
+            </div>
+        </header>
+
+        <div class="container mt-4 mb-5">
+            <!-- FORMULARIO DE ENVÍO -->
+            <h2>Enviar Correo de Alerta</h2>
+            <form th:action="@{/correo/enviar}" method="post" class="row g-3 mt-3">
+                <div class="col-md-6">
+                    <label for="destinatario" class="form-label">Correo destinatario</label>
+                    <input type="email" class="form-control" id="destinatario" name="destinatario" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="asunto" class="form-label">Asunto</label>
+                    <input type="text" class="form-control" id="asunto" name="asunto" required>
+                </div>
+
+                <div class="col-12">
+                    <label for="contenido" class="form-label">Mensaje</label>
+                    <textarea class="form-control" id="contenido" name="contenido" rows="4" required></textarea>
+                </div>
+
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Enviar correo</button>
+                </div>
+            </form>
+
+            <!-- MENSAJE DE CONFIRMACIÓN -->
+            <div th:if="${mensaje}" class="alert alert-success mt-3" role="alert">
+                <span th:text="${mensaje}"></span>
+            </div>
+
+            <!-- HISTORIAL DE ALERTAS -->
+            <hr class="my-5">
+            <h3>Historial de Alertas Enviadas</h3>
+            <div class="table-responsive mt-3">
+                <table class="table table-bordered table-striped">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Fecha de Envío</th>
+                            <th>Recurso</th>
+                            <th>Valor Detectado</th>
+                            <th>Correo Destinatario</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="alerta : ${alertas}">
+                            <td th:text="${#dates.format(alerta.fechaEnvio, 'dd/MM/yyyy HH:mm')}">Fecha</td>
+                            <td th:text="${alerta.recurso}">CPU</td>
+                            <td th:text="${alerta.valorDetectado}">95%</td>
+                            <td th:text="${alerta.destinatario}">ejemplo@correo.com</td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(alertas)}">
+                            <td colspan="4" class="text-center">No hay alertas enviadas aún.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/dashboard.js}"></script>
 </body>
 </html>
