@@ -1,7 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
-
-    
-    // Elementos del para el DOM
+document.addEventListener('DOMContentLoaded', function () {
     const sidebar = document.getElementById('sidebar');
     const mainContent = document.getElementById('mainContent');
     const toggleBtn = document.getElementById('toggleSidebar');
@@ -25,19 +22,16 @@ document.addEventListener('DOMContentLoaded', function() {
     const diskTotalValue = document.getElementById('diskTotalValue');
     const diskFreeValue = document.getElementById('diskFreeValue');
 
-    // Config
-    const CIRCLE_RADIUS = parseFloat(cpuCircle?.getAttribute('r') || 70); // Usa valor por defecto si falla
+    const CIRCLE_RADIUS = parseFloat(cpuCircle?.getAttribute('r') || 70);
     const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS;
 
-    // funciones de utilidades
-
     function updateProgressRing(circle, value) {
-        if (!circle) return; // Salir si el circulo no existe
+        if (!circle) return;
         const percentage = Math.max(0, Math.min(100, value || 0));
         const offset = CIRCLE_CIRCUMFERENCE - (percentage / 100 * CIRCLE_CIRCUMFERENCE);
         circle.style.strokeDashoffset = offset;
 
-        let baseColorVar = '--secondary-color'; // Default CPU
+        let baseColorVar = '--secondary-color';
         if (circle.id === 'ramCircle') baseColorVar = '--primary-color';
         if (circle.id === 'diskCircle') baseColorVar = '--accent-color';
 
@@ -65,11 +59,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateConnectionStatus(statusText, statusClass) {
         if (serverStatusElement) {
             serverStatusElement.textContent = statusText;
-            serverStatusElement.className = 'server-status ' + statusClass; // Asignar clases
+            serverStatusElement.className = 'server-status ' + statusClass;
         }
     }
-
-    // logica para el main
 
     function updateSystemInfo(data) {
         if (!data || typeof data !== 'object') {
@@ -77,32 +69,26 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // CPU
         const cpuUsage = data.cpuUsage !== undefined ? data.cpuUsage : 0;
-        if(cpuValue) cpuValue.textContent = cpuUsage + '%';
+        if (cpuValue) cpuValue.textContent = cpuUsage + '%';
         updateProgressRing(cpuCircle, cpuUsage);
-        if(cpuCoresValue) cpuCoresValue.textContent = data.cpuCores || '--';
-        if(cpuTempValue) cpuTempValue.textContent = data.cpuTemperature || '--';
+        if (cpuCoresValue) cpuCoresValue.textContent = data.cpuCores || '--';
+        if (cpuTempValue) cpuTempValue.textContent = data.cpuTemperature || '--';
 
-        // RAM
         const memoryUsage = data.memoryUsage !== undefined ? data.memoryUsage : 0;
-        if(ramValue) ramValue.textContent = memoryUsage + '%';
+        if (ramValue) ramValue.textContent = memoryUsage + '%';
         updateProgressRing(ramCircle, memoryUsage);
-        if(ramTotalValue) ramTotalValue.textContent = formatBytes(data.memoryTotal);
-        if(ramUsedValue) ramUsedValue.textContent = formatBytes(data.memoryUsed);
+        if (ramTotalValue) ramTotalValue.textContent = formatBytes(data.memoryTotal);
+        if (ramUsedValue) ramUsedValue.textContent = formatBytes(data.memoryUsed);
 
-        // Disco
         const diskUsage = data.diskUsage !== undefined ? data.diskUsage : 0;
-        if(diskValue) diskValue.textContent = diskUsage + '%';
+        if (diskValue) diskValue.textContent = diskUsage + '%';
         updateProgressRing(diskCircle, diskUsage);
-        if(diskTotalValue) diskTotalValue.textContent = formatBytes(data.diskTotal);
-        if(diskFreeValue) diskFreeValue.textContent = formatBytes(data.diskFree);
+        if (diskTotalValue) diskTotalValue.textContent = formatBytes(data.diskTotal);
+        if (diskFreeValue) diskFreeValue.textContent = formatBytes(data.diskFree);
 
-        // Server Info
-        if(serverNameValue) serverNameValue.textContent = data.serverName || 'Unknown';
+        if (serverNameValue) serverNameValue.textContent = data.serverName || 'Unknown';
     }
-
-    // para conectarse al servidor SSE
 
     function initializeSSE() {
         console.log('Init SSE');
@@ -110,12 +96,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const eventSource = new EventSource('/api/system/resources-stream');
 
-        eventSource.onopen = function() {
+        eventSource.onopen = function () {
             console.log('SSE open');
             updateConnectionStatus('Online', 'status-online');
         };
 
-        eventSource.addEventListener('system-update', function(event) {
+        eventSource.addEventListener('system-update', function (event) {
             try {
                 const systemData = JSON.parse(event.data);
                 updateSystemInfo(systemData);
@@ -124,13 +110,11 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        eventSource.onerror = function(error) {
+        eventSource.onerror = function (error) {
             console.error('SSE error:', error);
             updateConnectionStatus('Offline', 'status-offline');
         };
     }
-
-    // interactua con el DOM
 
     if (toggleBtn && sidebar && mainContent) {
         toggleBtn.addEventListener('click', () => {
@@ -139,37 +123,63 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.classList.toggle('sidebar-collapsed', isCollapsed);
         });
     } else {
-         console.warn("Sidebar elements not found");
+        console.warn("Sidebar elements not found");
     }
-
 
     if (btnHealth && healthSection) {
         btnHealth.addEventListener('click', () => {
             const isHidden = healthSection.style.display === 'none' || healthSection.style.display === '';
             healthSection.style.display = isHidden ? 'block' : 'none';
-            btnHealth.innerHTML = `<i class="fas fa-database"></i> ${isHidden ? 'Hide' : 'Show'} Health Checks`; // English example
+            btnHealth.innerHTML = `<i class="fas fa-database"></i> ${isHidden ? 'Ocultar' : 'Mostrar'} Health Checks`;
+
+            if (isHidden) {
+                // Solo consultar si se va a mostrar
+                fetch('/databases/status')
+                    .then(res => res.json())
+                    .then(statuses => {
+                        const dbCards = document.querySelectorAll('.db-card');
+                        dbCards.forEach(card => {
+                          const dbName = card.querySelector('h4')?.innerText.trim();
+                          const badge = card.querySelector('.status-badge');
+                          if (statuses[dbName]) {
+                            const status = statuses[dbName];
+                            badge.textContent = status;
+                            badge.classList.remove('status-healthy', 'status-warning', 'status-critical');
+                    
+                            if (status === 'Operativo') {
+                              badge.classList.add('status-healthy');
+                            } else if (status === 'Advertencia') {
+                              badge.classList.add('status-warning');
+                            } else {
+                              badge.classList.add('status-critical');
+                            }
+                          } else {
+                            badge.textContent = 'Desconocido';
+                            badge.classList.remove('status-healthy', 'status-warning', 'status-critical');
+                            badge.classList.add('status-critical');
+                          }
+                        });
+                      })
+                    .catch(error => {
+                        console.error('Error al obtener estados de bases de datos:', error);
+                    });
+            }
         });
     } else {
         console.warn("Health check elements not found");
     }
 
-
-    // inicializa los csrculos
     [cpuCircle, ramCircle, diskCircle].forEach(circle => {
-         if (circle) {
-             circle.style.strokeDasharray = CIRCLE_CIRCUMFERENCE;
-             circle.style.strokeDashoffset = CIRCLE_CIRCUMFERENCE;
-             
-             let baseColorVar = '--secondary-color';
-             if (circle.id === 'ramCircle') baseColorVar = '--primary-color';
-             if (circle.id === 'diskCircle') baseColorVar = '--accent-color';
-             circle.style.stroke = `var(${baseColorVar})`;
-         }
-     });
+        if (circle) {
+            circle.style.strokeDasharray = CIRCLE_CIRCUMFERENCE;
+            circle.style.strokeDashoffset = CIRCLE_CIRCUMFERENCE;
 
+            let baseColorVar = '--secondary-color';
+            if (circle.id === 'ramCircle') baseColorVar = '--primary-color';
+            if (circle.id === 'diskCircle') baseColorVar = '--accent-color';
+            circle.style.stroke = `var(${baseColorVar})`;
+        }
+    });
 
-
-    // para conectarse al servidor SSE
     initializeSSE();
-
-}); 
+});

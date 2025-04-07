@@ -29,5 +29,11 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://java_db:5432/postgres
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+    privileged: true
+    volumes:
+      - /proc:/host_proc:ro
+      - /sys:/host_sys:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # importante para Linux
 
 
