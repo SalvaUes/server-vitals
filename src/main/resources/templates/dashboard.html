@@ -19,12 +19,12 @@
 
         <!-- BARRA DE LATERAL -->
         <div class="sidebar-menu">
-            <a href="#umbral" class="menu-item">
+            <a href="/umbrales" class="menu-item">
                 <i class="fas fa-sliders-h" aria-hidden="true"></i>
                 <span>Umbrales</span> </a>
             <a href="#correo" class="menu-item">
                 <i class="fas fa-envelope" aria-hidden="true"></i>
-                <span>Correo</span>
+                <span>Alertas</span>
             </a>
             <a href="#" class="menu-item active"> <i class="fas fa-tachometer-alt" aria-hidden="true"></i>
                 <span>Dashboard</span>
@@ -102,21 +102,27 @@
             <h2 id="health-checks-title">Health Checks Bases de Datos</h2>
             <div class="database-status">
                 <div class="db-card">
-                    <div class="db-icon" style="background-color: var(--success-color);"><i class="fas fa-database" aria-hidden="true"></i></div>
-                    <div class="db-info"><h4>PostgreSQL</h4><p><span class="status-badge status-healthy">Operativo</span></p></div>
+                    <div class="db-icon"><i class="fas fa-database" aria-hidden="true"></i></div>
+                    <div class="db-info">
+                      <h4>PostgreSQL</h4>
+                      <p><span class="status-badge">Cargando...</span></p> <!-- Texto y clase neutral -->
+                    </div>
                 </div>
                 <div class="db-card">
-                    <div class="db-icon" style="background-color: var(--warning-color);"><i class="fas fa-database" aria-hidden="true"></i></div>
-                    <div class="db-info"><h4>MySQL</h4><p><span class="status-badge status-warning">Advertencia</span></p></div>
-                </div>
-                <div class="db-card">
-                    <div class="db-icon" style="background-color: var(--success-color);"><i class="fas fa-database" aria-hidden="true"></i></div>
-                    <div class="db-info"><h4>MongoDB</h4><p><span class="status-badge status-healthy">Operativo</span></p></div>
-                </div>
-                <div class="db-card">
-                    <div class="db-icon" style="background-color: var(--danger-color);"><i class="fas fa-database" aria-hidden="true"></i></div>
-                    <div class="db-info"><h4>Oracle</h4><p><span class="status-badge status-critical">No disponible</span></p></div>
-                </div>
+                    <div class="db-icon"><i class="fas fa-database" aria-hidden="true"></i></div>
+                    <div class="db-info">
+                      <h4>MySQL</h4>
+                      <p><span class="status-badge">Cargando...</span></p> <!-- Texto y clase neutral -->
+                    </div>
+                  </div>
+                
+                  <div class="db-card">
+                    <div class="db-icon"><i class="fas fa-database" aria-hidden="true"></i></div>
+                    <div class="db-info">
+                      <h4>Oracle</h4>
+                      <p><span class="status-badge">Cargando...</span></p> <!-- Texto y clase neutral -->
+                    </div>
+                  </div>
             </div>
         </section>
     </div> <button class="btn btn-health" id="btnHealth" aria-controls="healthChecksSection"> <i class="fas fa-database" aria-hidden="true"></i> Mostrar Health Checks

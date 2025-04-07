@@ -1,0 +1,39 @@
+version: "3.9"
+
+services:
+  java_db:
+    container_name: server_vitals_db
+    image: postgres:latest
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  java_app:
+    container_name: server_vitals_app
+    image: parcial01-java:1.0
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      java_db:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://java_db:5432/postgres
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    privileged: true
+    volumes:
+      - /proc:/host_proc:ro
+      - /sys:/host_sys:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # importante para Linux
+
+

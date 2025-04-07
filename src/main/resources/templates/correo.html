@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVITS - Correo</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h4>SVITS</h4>
+            <button class="toggle-btn" id="toggleSidebar" aria-label="Toggle sidebar">
+                <i class="fas fa-bars" aria-hidden="true"></i>
+            </button>
+        </div>
+        <div class="sidebar-menu">
+            <a href="/umbrales" class="menu-item">
+                <i class="fas fa-sliders-h" aria-hidden="true"></i>
+                <span>Umbrales</span>
+            </a>
+            <a href="/correo" class="menu-item active">
+                <i class="fas fa-envelope" aria-hidden="true"></i>
+                <span>Alertas</span>
+            </a>
+            <a href="/dashboard" class="menu-item">
+                <i class="fas fa-tachometer-alt" aria-hidden="true"></i>
+                <span>Dashboard</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="main-content" id="mainContent">
+        <header class="dashboard-header">
+            <h1>SVITS - Alertas</h1>
+            <div class="server-info">
+                <div id="serverName">Servidor: <strong id="serverNameValue">Conectando...</strong></div>
+                <div class="server-status status-connecting" id="serverStatus">Conectando</div>
+            </div>
+        </header>
+
+        <div class="container mt-4 mb-5">
+            <!-- FORMULARIO DE ENVÍO -->
+            <h2>Alertas</h2>
+            <form th:action="@{/enviar-correo}" method="post" class="row g-3 mt-3">
+                <div class="col-md-6">
+                    <label for="destinatario" class="form-label">Correo destinatario</label>
+                    <input type="email" class="form-control" id="destinatario" name="destinatario" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="tipoRecurso" class="form-label">Seleccionar Umbral</label>
+                    <select name="tipoRecurso" id="tipoRecurso" class="form-select" required>
+                        <option th:each="umbral : ${listaUmbrales}" 
+                                th:value="${umbral.tipoRecurso}" 
+                                th:text="${umbral.tipoRecurso}"></option>
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <label for="contenido" class="form-label">Mensaje</label>
+                    <textarea class="form-control" id="contenido" name="contenido" rows="4" required></textarea>
+                </div>
+
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+
+            <hr class="my-5">
+
+        <h2 class="mt-4">Alertas</h2>
+        <table class="table table-striped table-bordered mt-3">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Correo</th>
+                    <th>Recurso</th>
+                    <th>Mensaje</th>            
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="alerta : ${listaAlertas}">
+                    <td th:text="${alerta.id}"></td>
+                    <td th:text="${alerta.destinatario}"></td>
+                    <td th:text="${alerta.tipoRecurso}"></td>
+                    <td th:text="${alerta.contenido}"></td>            
+                    <td>
+                        <form th:action="@{/alerta/eliminar/{id}(id=${alerta.id})}" method="post" th:object="${alerta}" onsubmit="return confirm('¿Estás seguro de eliminar esta alerta?');">
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash-alt"></i> Eliminar
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+          
+           
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>
