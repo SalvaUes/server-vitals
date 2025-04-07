@@ -158,6 +158,7 @@ public class SystemMonitorService {
     //  por si no hay datos todavia
 
     private SystemResourceDto createDefaultDto() {
+
         SystemResourceDto defaultDto = new SystemResourceDto();
         defaultDto.setServerName("Initializing...");
         defaultDto.setCpuUsage(0);
@@ -167,4 +168,6 @@ public class SystemMonitorService {
         
         return defaultDto;
     }
+
+    
 }
