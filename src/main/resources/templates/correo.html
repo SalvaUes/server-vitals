@@ -25,7 +25,7 @@
             </a>
             <a href="/correo" class="menu-item active">
                 <i class="fas fa-envelope" aria-hidden="true"></i>
-                <span>Correo</span>
+                <span>Alertas</span>
             </a>
             <a href="/dashboard" class="menu-item">
                 <i class="fas fa-tachometer-alt" aria-hidden="true"></i>
@@ -36,7 +36,7 @@
 
     <div class="main-content" id="mainContent">
         <header class="dashboard-header">
-            <h1>SVITS - Envío de Alertas por Correo</h1>
+            <h1>SVITS - Alertas</h1>
             <div class="server-info">
                 <div id="serverName">Servidor: <strong id="serverNameValue">Conectando...</strong></div>
                 <div class="server-status status-connecting" id="serverStatus">Conectando</div>
@@ -45,7 +45,7 @@
 
         <div class="container mt-4 mb-5">
             <!-- FORMULARIO DE ENVÍO -->
-            <h2>Enviar Correo de Alerta</h2>
+            <h2>Alertas</h2>
             <form th:action="@{/enviar-correo}" method="post" class="row g-3 mt-3">
                 <div class="col-md-6">
                     <label for="destinatario" class="form-label">Correo destinatario</label>
@@ -53,16 +53,11 @@
                 </div>
 
                 <div class="col-md-6">
-                    <label for="asunto" class="form-label">Asunto</label>
-                    <input type="text" class="form-control" id="asunto" name="asunto" required>
-                </div>
-
-                <div class="col-md-6">
                     <label for="tipoRecurso" class="form-label">Seleccionar Umbral</label>
                     <select name="tipoRecurso" id="tipoRecurso" class="form-select" required>
                         <option th:each="umbral : ${listaUmbrales}" 
                                 th:value="${umbral.tipoRecurso}" 
-                                th:text="${umbral.tipoRecurso}">Selecciona un umbral</option>
+                                th:text="${umbral.tipoRecurso}"></option>
                     </select>
                 </div>
 
@@ -72,46 +67,43 @@
                 </div>
 
                 <div class="col-12">
-                    <button type="submit" class="btn btn-primary">Enviar correo</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
                 </div>
             </form>
 
-            <!-- MENSAJE DE CONFIRMACIÓN -->
-            <div th:if="${mensaje}" class="alert alert-success mt-3" role="alert">
-                <span th:text="${mensaje}"></span>
-            </div>
-
-            <!-- MENSAJE DE ERROR -->
-            <div th:if="${error}" class="alert alert-danger mt-3" role="alert">
-                <span th:text="${error}"></span>
-            </div>
-
-            <!-- HISTORIAL DE ALERTAS -->
             <hr class="my-5">
-            <h3>Historial de Alertas Enviadas</h3>
-            <div class="table-responsive mt-3">
-                <table class="table table-bordered table-striped">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Fecha de Envío</th>
-                            <th>Recurso</th>
-                            <th>Valor Detectado</th>
-                            <th>Correo Destinatario</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="alerta : ${alertas}">
-                            <td th:text="${#dates.format(alerta.fechaEnvio, 'dd/MM/yyyy HH:mm')}">Fecha</td>
-                            <td th:text="${alerta.recurso}">CPU</td>
-                            <td th:text="${alerta.valorDetectado}">95%</td>
-                            <td th:text="${alerta.destinatario}">ejemplo@correo.com</td>
-                        </tr>
-                        <tr th:if="${#lists.isEmpty(alertas)}">
-                            <td colspan="4" class="text-center">No hay alertas enviadas aún.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+
+        <h2 class="mt-4">Alertas</h2>
+        <table class="table table-striped table-bordered mt-3">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Correo</th>
+                    <th>Recurso</th>
+                    <th>Mensaje</th>            
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="alerta : ${listaAlertas}">
+                    <td th:text="${alerta.id}"></td>
+                    <td th:text="${alerta.destinatario}"></td>
+                    <td th:text="${alerta.tipoRecurso}"></td>
+                    <td th:text="${alerta.contenido}"></td>            
+                    <td>
+                        <form th:action="@{/alerta/eliminar/{id}(id=${alerta.id})}" method="post" th:object="${alerta}" onsubmit="return confirm('¿Estás seguro de eliminar esta alerta?');">
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                <i class="fas fa-trash-alt"></i> Eliminar
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+
+          
+           
         </div>
     </div>
 
