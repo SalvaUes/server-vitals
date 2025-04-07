@@ -1,7 +1,5 @@
 package com.svit.server_vitals.model;
 
-import java.time.LocalDateTime;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -15,9 +13,8 @@ public class Alerta {
     private Long id;
 
     private String tipoRecurso;
-    private double valorDetectado;
+
     private String correoDestino;
-    private LocalDateTime fechaEnvio;
     private String mensaje;
 
     
@@ -38,14 +35,6 @@ public class Alerta {
         this.tipoRecurso = tipoRecurso;
     }
 
-    public double getValorDetectado() {
-        return valorDetectado;
-    }
-
-    public void setValorDetectado(double valorDetectado) {
-        this.valorDetectado = valorDetectado;
-    }
-
     public String getCorreoDestino() {
         return correoDestino;
     }
@@ -54,13 +43,6 @@ public class Alerta {
         this.correoDestino = correoDestino;
     }
 
-    public LocalDateTime getFechaEnvio() {
-        return fechaEnvio;
-    }
-
-    public void setFechaEnvio(LocalDateTime fechaEnvio) {
-        this.fechaEnvio = fechaEnvio;
-    }
 
     public String getMensaje() {
         return mensaje;
