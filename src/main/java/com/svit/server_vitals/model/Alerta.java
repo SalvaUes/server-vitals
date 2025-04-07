@@ -20,6 +20,7 @@ public class Alerta {
     private LocalDateTime fechaEnvio;
     private String mensaje;
 
+    
     // Getters y setters
     public Long getId() {
         return id;

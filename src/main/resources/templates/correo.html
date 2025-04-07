@@ -46,7 +46,7 @@
         <div class="container mt-4 mb-5">
             <!-- FORMULARIO DE ENVÍO -->
             <h2>Enviar Correo de Alerta</h2>
-            <form th:action="@{/correo/enviar}" method="post" class="row g-3 mt-3">
+            <form th:action="@{/enviar-correo}" method="post" class="row g-3 mt-3">
                 <div class="col-md-6">
                     <label for="destinatario" class="form-label">Correo destinatario</label>
                     <input type="email" class="form-control" id="destinatario" name="destinatario" required>
@@ -55,6 +55,15 @@
                 <div class="col-md-6">
                     <label for="asunto" class="form-label">Asunto</label>
                     <input type="text" class="form-control" id="asunto" name="asunto" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="tipoRecurso" class="form-label">Seleccionar Umbral</label>
+                    <select name="tipoRecurso" id="tipoRecurso" class="form-select" required>
+                        <option th:each="umbral : ${listaUmbrales}" 
+                                th:value="${umbral.tipoRecurso}" 
+                                th:text="${umbral.tipoRecurso}">Selecciona un umbral</option>
+                    </select>
                 </div>
 
                 <div class="col-12">
@@ -70,6 +79,11 @@
             <!-- MENSAJE DE CONFIRMACIÓN -->
             <div th:if="${mensaje}" class="alert alert-success mt-3" role="alert">
                 <span th:text="${mensaje}"></span>
+            </div>
+
+            <!-- MENSAJE DE ERROR -->
+            <div th:if="${error}" class="alert alert-danger mt-3" role="alert">
+                <span th:text="${error}"></span>
             </div>
 
             <!-- HISTORIAL DE ALERTAS -->
@@ -106,3 +120,4 @@
     <script th:src="@{/js/dashboard.js}"></script>
 </body>
 </html>
+
