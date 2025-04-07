@@ -1,10 +1,14 @@
 package com.svit.server_vitals.controller;
 
+import com.svit.server_vitals.dto.UmbralDTO;
 import com.svit.server_vitals.model.Umbral;
 import com.svit.server_vitals.service.UmbralService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
 
 @Controller
 @RequestMapping("/umbrales")
@@ -25,8 +29,22 @@ public class UmbralController {
 
     @PostMapping("/guardar")
     public String guardarUmbral(@ModelAttribute Umbral umbral) {
-        umbral.setFechaConfiguracion(java.time.LocalDateTime.now());
+        umbral.setFechaConfiguracion(LocalDateTime.now());
         umbralService.save(umbral);
         return "redirect:/umbrales";
+    }
+
+    
+    @PostMapping
+    @ResponseBody
+    public ResponseEntity<String> guardarUmbralAjax(@RequestBody UmbralDTO umbral) {
+        Umbral nuevo = new Umbral();
+        nuevo.setTipoRecurso(umbral.getTipo());
+        nuevo.setValorMaximo(umbral.getValor());
+        nuevo.setUnidad(umbral.getUnidad());
+        nuevo.setFechaConfiguracion(LocalDateTime.now());
+
+        umbralService.save(nuevo);
+        return ResponseEntity.ok("Umbral guardado exitosamente");
     }
 }

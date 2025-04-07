@@ -10,10 +10,17 @@ public class Umbral {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "tipoRecurso")
     private String tipoRecurso; 
+    @Column(name = "valorMaximo")
     private double valorMaximo;
+    @Column(name = "unidad")
+    private String unidad;
+    @Column(name = "valorMinimo")
     private double valorMinimo;
+    @Column(name = "fechaConfiguracion")
     private LocalDateTime fechaConfiguracion;
+
     public Long getId() {
         return id;
     }
@@ -32,6 +39,15 @@ public class Umbral {
     public void setValorMaximo(double valorMaximo) {
         this.valorMaximo = valorMaximo;
     }
+
+    public String getUnidad() {
+        return unidad;
+    }
+    
+    public void setUnidad(String unidad) {
+        this.unidad = unidad;
+    }
+
     public double getValorMinimo() {
         return valorMinimo;
     }
@@ -44,6 +60,11 @@ public class Umbral {
     public void setFechaConfiguracion(LocalDateTime fechaConfiguracion) {
         this.fechaConfiguracion = fechaConfiguracion;
     }
+    public void setUnidad(double unidad2) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'setUnidad'");
+    }
+
 
     
 }

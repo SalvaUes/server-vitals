@@ -55,7 +55,7 @@
 </head>
 <body>
 
-<!-- Sidebar -->
+
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <h4>SVITS</h4>
@@ -80,16 +80,14 @@
     </div>
 </div>
 
-<!-- Contenido principal -->
 <div class="umbral-container">
-    <!-- Alerta de éxito -->
     <div id="alertContainer"></div>
 
     <div class="umbral-card">
         <div class="umbral-title">Configuración de Umbrales</div>
 
         <form id="umbralForm" onsubmit="return guardarUmbral()">
-            <!-- Tipo de recurso -->
+         
             <div class="mb-3">
                 <label class="form-label">Tipo de recurso</label><br>
                 <div class="form-check form-check-inline">
@@ -106,7 +104,7 @@
                 </div>
             </div>
 
-            <!-- Modo: Porcentaje o Cantidad -->
+            
             <div class="mb-3">
                 <label class="form-label">Unidad de medida</label><br>
                 <select id="unidad" class="form-select w-50" onchange="cambiarPlaceholder()">
@@ -115,7 +113,7 @@
                 </select>
             </div>
 
-            <!-- Valor del umbral -->
+          
             <div class="mb-3">
                 <label class="form-label">Valor</label>
                 <input type="number" class="form-control" id="valor" placeholder="70 (%)" required min="1">
@@ -127,7 +125,7 @@
         </form>
     </div>
 
-    <!-- Tabla de umbrales actuales -->
+  
     <div class="mt-5">
         <h4 class="mb-3">Umbrales actuales</h4>
         <div class="table-responsive">
@@ -142,7 +140,7 @@
                     </tr>
                 </thead>
                 <tbody id="tablaUmbrales">
-                    <!-- Datos dinámicos simulados -->
+                   
                     <tr>
                         <td>CPU</td>
                         <td>80</td>
@@ -171,7 +169,7 @@
     </div>
 </div>
 
-<!-- Scripts -->
+
 <script>
     function cambiarPlaceholder() {
         const unidad = document.getElementById("unidad").value;
@@ -179,31 +177,48 @@
     }
 
     function guardarUmbral() {
-        const tipo = document.querySelector('input[name="tipo"]:checked').value;
+        const tipoRecurso = document.querySelector('input[name="tipo"]:checked').value;
         const unidad = document.getElementById("unidad").value;
-        const valor = document.getElementById("valor").value;
-        const fechaHora = new Date().toISOString().slice(0, 16).replace("T", " ");
+        const valorMaximo = parseFloat(document.getElementById("valor").value);
 
-        // Simula insertar en tabla
+        fetch("/umbral", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ tipoRecurso, unidad, valorMaximo })
+        })
+        .then(response => {
+            if (response.ok) {
+                mostrarAlerta("Umbral guardado exitosamente.", "success");
+                agregarFilaATabla(tipoRecurso, unidad, valorMaximo);
+                document.getElementById("valor").value = "";
+            } else {
+                mostrarAlerta("Error al guardar el umbral.", "danger");
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            mostrarAlerta("Error al conectar con el servidor.", "danger");
+        });
+
+        return false; 
+    }
+
+    function agregarFilaATabla(tipoRecurso, unidad, valorMaximo) {
+        const fechaHora = new Date().toISOString().slice(0, 16).replace("T", " ");
         const tabla = document.getElementById("tablaUmbrales");
         const fila = tabla.insertRow(0);
         fila.innerHTML = `
-            <td>${tipo}</td>
-            <td>${valor}</td>
+            <td>${tipoRecurso}</td>
+            <td>${valorMaximo}</td>
             <td>${unidad}</td>
-            <td>${fechaHora}</td>
+            <td>${fechaConfiguracion}</td>
             <td><button class="btn btn-danger btn-sm" onclick="eliminarUmbral(this)">
                 <i class="fas fa-trash-alt me-1"></i>Eliminar</button>
             </td>`;
-
-        // Muestra alerta
-        mostrarAlerta("Umbral guardado exitosamente.", "success");
-
-        // Limpia valor
-        document.getElementById("valor").value = "";
-
-        return false; // Previene submit real
     }
+
 
     function eliminarUmbral(btn) {
         if (confirm("¿Estás seguro de que deseas eliminar este umbral?")) {
