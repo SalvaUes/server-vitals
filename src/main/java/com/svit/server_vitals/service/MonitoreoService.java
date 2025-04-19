@@ -1,52 +1,109 @@
 package com.svit.server_vitals.service;
 
+import com.svit.server_vitals.dto.SystemResourceDto;
+import com.svit.server_vitals.model.Alerta;
 import com.svit.server_vitals.model.Umbral;
+import com.svit.server_vitals.repository.AlertaRepository;
 import com.svit.server_vitals.repository.UmbralRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 @Service
 public class MonitoreoService {
 
-    private final UmbralRepository umbralRepository;
-    private final MailService mailService;
+    private static final Logger log = LoggerFactory.getLogger(MonitoreoService.class);
 
-    public MonitoreoService(UmbralRepository umbralRepository, MailService mailService) {
+    private final UmbralRepository umbralRepository;
+    private final AlertaRepository alertaRepository;
+    private final MailService mailService;
+    private final SystemMonitorService systemMonitorService;
+
+    public MonitoreoService(UmbralRepository umbralRepository,
+                            AlertaRepository alertaRepository,
+                            MailService mailService,
+                            SystemMonitorService systemMonitorService) {
         this.umbralRepository = umbralRepository;
+        this.alertaRepository = alertaRepository;
         this.mailService = mailService;
+        this.systemMonitorService = systemMonitorService;
     }
 
-    
     @Scheduled(fixedRate = 10000)
     public void monitorearRecursos() {
+        log.debug("Ejecutando monitorearRecursos...");
         List<Umbral> umbrales = umbralRepository.findAll();
+        SystemResourceDto metricasActuales = systemMonitorService.getLatestMetrics();
 
-      
+        if (metricasActuales == null) {
+            log.warn("No se pudieron obtener las métricas actuales del sistema.");
+            return;
+        }
+
+        Map<String, Integer> valoresActuales = new HashMap<>();
+        valoresActuales.put("CPU", metricasActuales.getCpuUsage());
+        valoresActuales.put("RAM", metricasActuales.getMemoryUsage());
+        valoresActuales.put("DISCO", metricasActuales.getDiskUsage());
+
+        log.debug("Valores actuales - CPU: {}%, RAM: {}%, DISCO: {}%",
+                  valoresActuales.get("CPU"), valoresActuales.get("RAM"), valoresActuales.get("DISCO"));
+
+        if (mailService == null) {
+             log.warn("MailService no está inyectado en MonitoreoService. No se podrán enviar alertas.");
+             return;
+        }
+
         for (Umbral umbral : umbrales) {
-           
-            double valorRecursoActual = obtenerValorRecurso(umbral.getTipoRecurso());
+            String tipoRecurso = umbral.getTipoRecurso();
+            double valorMaximoUmbral = umbral.getValorMaximo();
 
-            
-            if (valorRecursoActual > umbral.getValorMaximo()) {
-                String mensaje = "Alerta: El valor del recurso " + umbral.getTipoRecurso() +
-                        " ha superado el umbral máximo. Valor actual: " + valorRecursoActual;
+            if (!valoresActuales.containsKey(tipoRecurso)) {
+                log.warn("No se encontró un valor actual para el tipo de recurso del umbral: {}", tipoRecurso);
+                continue;
+            }
 
-                
-                mailService.enviarCorreoAlerta("alertasdaw@gmail.com", "Alerta de Umbral Superado", mensaje);
+            double valorRecursoActual = valoresActuales.get(tipoRecurso);
+
+            log.debug("Verificando umbral para: {} (Umbral Máximo: {}, Valor Actual: {})",
+                      tipoRecurso, valorMaximoUmbral, valorRecursoActual);
+
+            if (valorRecursoActual > valorMaximoUmbral) {
+                log.warn("¡Umbral SUPERADO para {}! Valor actual ({}) > Umbral ({})",
+                         tipoRecurso, valorRecursoActual, valorMaximoUmbral);
+
+                List<Alerta> alertasConfiguradas = alertaRepository.findByTipoRecurso(tipoRecurso);
+                log.info("Se encontraron {} configuraciones de alerta para {}", alertasConfiguradas.size(), tipoRecurso);
+
+                if (alertasConfiguradas.isEmpty()) {
+                    log.warn("Umbral superado para {}, pero no hay alertas configuradas para notificar.", tipoRecurso);
+                    continue;
+                }
+
+                for (Alerta alerta : alertasConfiguradas) {
+                    String destinatario = alerta.getCorreoDestino();
+                    // --- CONTENIDO RESTAURADO ---
+                    String asunto = "Alerta SVITS: Umbral Superado para " + tipoRecurso;
+                    // Usar el mensaje guardado en la base de datos (alerta.getMensaje())
+                    String mensaje = alerta.getMensaje()
+                                         .replace("${tipoRecurso}", tipoRecurso) // Reemplaza si usas placeholders
+                                         .replace("${valorActual}", String.valueOf(valorRecursoActual))
+                                         .replace("${umbralMaximo}", String.valueOf(valorMaximoUmbral));
+                    // --- FIN CONTENIDO RESTAURADO ---
+
+                    log.info("Enviando alerta para {} a {}...", tipoRecurso, destinatario);
+                    mailService.enviarCorreoAlerta(destinatario, asunto, mensaje);
+                }
+
+            } else {
+                log.debug("Umbral OK para {}. Valor actual ({}) <= Umbral ({})",
+                          tipoRecurso, valorRecursoActual, valorMaximoUmbral);
             }
         }
-    }
-
-
-    private double obtenerValorRecurso(String tipoRecurso) {
-        
-        return switch (tipoRecurso) {
-            case "CPU" -> 85.0;
-            case "RAM" -> 75.0;
-            case "DISCO" -> 90.0;
-            default -> 0.0;
-        };
+        log.debug("Fin de la ejecución de monitorearRecursos.");
     }
 }

@@ -2,168 +2,170 @@
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Configuración de Umbrales</title>
+    <title>SVITS - Configuración de Umbrales</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- Bootstrap + FontAwesome -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- Estilos personalizados -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
     <style>
+        /* Estilos específicos si son necesarios, sino usar dashboard.css */
         .umbral-container {
-            margin-left: 260px;
-            padding: 40px;
-            background-color: #f9fafb;
-            min-height: 100vh;
+            margin-left: 250px; /* Ajustar si la barra lateral cambia */
+            padding: 20px;
+            transition: margin-left 0.3s ease;
         }
-
+        .main-content.expanded .umbral-container { /* Ajustar si usas la clase expanded */
+             margin-left: 70px;
+        }
         .umbral-card {
             background-color: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            border-radius: 15px;
             padding: 30px;
-            max-width: 800px;
-            margin: auto;
-        }
-
-        .umbral-title {
-            font-size: 24px;
-            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
             margin-bottom: 30px;
         }
-
-        .save-btn {
-            background-color: #4CAF50;
-            border: none;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 8px;
-            font-size: 16px;
-        }
-
-        .save-btn:hover {
-            background-color: #45a049;
-        }
-
-        .alert {
-            max-width: 800px;
-            margin: 20px auto;
-        }
+         .save-btn {
+            /* Estilos del botón de guardar si son diferentes a los de bootstrap */
+            background-color: var(--primary-color); /* Usar variables CSS */
+            border-color: var(--primary-color);
+         }
+         .save-btn:hover {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+         }
     </style>
 </head>
 <body>
 
-<!-- Sidebar -->
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <h4>SVITS</h4>
-        <button class="toggle-btn" id="toggleSidebar">
-            <i class="fas fa-bars"></i>
+        <button class="toggle-btn" id="toggleSidebar" aria-label="Toggle sidebar">
+            <i class="fas fa-bars" aria-hidden="true"></i>
         </button>
     </div>
-
     <div class="sidebar-menu">
-        <a href="/umbral" class="menu-item active">
-            <i class="fas fa-sliders-h"></i>
+        <a href="/umbrales" class="menu-item active">
+            <i class="fas fa-sliders-h" aria-hidden="true"></i>
             <span>Umbrales</span>
         </a>
         <a href="/correo" class="menu-item">
-            <i class="fas fa-envelope"></i>
+            <i class="fas fa-envelope" aria-hidden="true"></i>
             <span>Alertas</span>
         </a>
         <a href="/dashboard" class="menu-item">
-            <i class="fas fa-tachometer-alt"></i>
+            <i class="fas fa-tachometer-alt" aria-hidden="true"></i>
             <span>Dashboard</span>
         </a>
     </div>
 </div>
 
-<!-- Contenido principal -->
-<div class="umbral-container">
-    <!-- Alerta de éxito -->
-    <div id="alertContainer"></div>
+<div class="main-content" id="mainContent">
+    <header class="dashboard-header">
+        <h1>SVITS - Configuración de Umbrales</h1>
+         <div class="server-info">
+             <div id="serverName">Servidor: <strong id="serverNameValue">Conectando...</strong></div>
+             <div class="server-status status-connecting" id="serverStatus">Conectando</div>
+         </div>
+    </header>
 
-    <div class="umbral-card">
-        <div class="umbral-title">Configuración de Umbrales</div>
+    <div class="container mt-4">
 
-        <form id="umbralForm" onsubmit="return guardarUmbral()">
-            <!-- Tipo de recurso -->
-            <div class="mb-3">
-                <label class="form-label">Tipo de recurso</label><br>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="tipo" id="cpuRadio" value="CPU" checked>
-                    <label class="form-check-label" for="cpuRadio">CPU</label>
+        <div th:if="${param.exito}" class="alert alert-success alert-dismissible fade show" role="alert">
+            Umbral guardado exitosamente.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            Error al guardar el umbral.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+         <div th:if="${param.eliminado}" class="alert alert-success alert-dismissible fade show" role="alert">
+             Umbral eliminado correctamente.
+             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+         </div>
+         <div th:if="${param.errorEliminar}" class="alert alert-danger alert-dismissible fade show" role="alert">
+             Error al eliminar el umbral.
+             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+         </div>
+
+
+        <div class="umbral-card">
+            <h2 class="mb-4">Nuevo Umbral</h2>
+
+            <form th:action="@{/umbrales/guardar}" method="post" th:object="${umbral}">
+                <div class="mb-3">
+                    <label class="form-label">Tipo de Recurso</label>
+                    <div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{tipoRecurso}" id="tipoCPU" value="CPU" required>
+                            <label class="form-check-label" for="tipoCPU">CPU</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{tipoRecurso}" id="tipoRAM" value="RAM" required>
+                            <label class="form-check-label" for="tipoRAM">RAM</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" th:field="*{tipoRecurso}" id="tipoDisco" value="DISCO" required>
+                            <label class="form-check-label" for="tipoDisco">Disco</label>
+                        </div>
+                    </div>
+                     <div th:if="${#fields.hasErrors('tipoRecurso')}" th:errors="*{tipoRecurso}" class="text-danger small"></div>
                 </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="tipo" id="ramRadio" value="RAM">
-                    <label class="form-check-label" for="ramRadio">RAM</label>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="valorMinimo" class="form-label">Valor Mínimo (%)</label>
+                        <input type="number" class="form-control" th:field="*{valorMinimo}" id="valorMinimo" placeholder="Ej: 10" required min="0" max="100" step="any">
+                         <div th:if="${#fields.hasErrors('valorMinimo')}" th:errors="*{valorMinimo}" class="text-danger small"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="valorMaximo" class="form-label">Valor Máximo (%)</label>
+                        <input type="number" class="form-control" th:field="*{valorMaximo}" id="valorMaximo" placeholder="Ej: 80" required min="0" max="100" step="any">
+                         <div th:if="${#fields.hasErrors('valorMaximo')}" th:errors="*{valorMaximo}" class="text-danger small"></div>
+                    </div>
                 </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="tipo" id="discoRadio" value="DISCO">
-                    <label class="form-check-label" for="discoRadio">Disco</label>
+
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary save-btn">
+                        <i class="fas fa-save me-2"></i>Guardar Umbral
+                    </button>
                 </div>
-            </div>
+            </form>
+        </div>
 
-            <!-- Modo: Porcentaje o Cantidad -->
-            <div class="mb-3">
-                <label class="form-label">Unidad de medida</label><br>
-                <select id="unidad" class="form-select w-50" onchange="cambiarPlaceholder()">
-                    <option value="%" selected>Porcentaje (%)</option>
-                    <option value="MB">Cantidad (MB)</option>
-                </select>
-            </div>
+        <hr class="my-5">
 
-            <!-- Valor del umbral -->
-            <div class="mb-3">
-                <label class="form-label">Valor</label>
-                <input type="number" class="form-control" id="valor" placeholder="70 (%)" required min="1">
-            </div>
-
-            <div class="text-end">
-                <button type="submit" class="save-btn"><i class="fas fa-save me-2"></i>Guardar</button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Tabla de umbrales actuales -->
-    <div class="mt-5">
-        <h4 class="mb-3">Umbrales actuales</h4>
+        <h2 class="mt-4">Umbrales Actuales</h2>
         <div class="table-responsive">
-            <table class="table table-bordered table-striped align-middle">
-                <thead class="table-light">
+            <table class="table table-striped table-bordered mt-3 align-middle">
+                <thead class="table-dark">
                     <tr>
-                        <th>Tipo</th>
-                        <th>Valor</th>
-                        <th>Unidad</th>
-                        <th>Fecha/Hora</th>
+                        <th>ID</th>
+                        <th>Tipo Recurso</th>
+                        <th>Valor Mínimo (%)</th>
+                        <th>Valor Máximo (%)</th>
+                        <th>Fecha Configuración</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
-                <tbody id="tablaUmbrales">
-                    <!-- Datos dinámicos simulados -->
-                    <tr>
-                        <td>CPU</td>
-                        <td>80</td>
-                        <td>%</td>
-                        <td>2025-04-05 10:23</td>
-                        <td>
-                            <button class="btn btn-danger btn-sm" onclick="eliminarUmbral(this)">
-                                <i class="fas fa-trash-alt me-1"></i>Eliminar
-                            </button>
-                        </td>
+                <tbody>
+                    <tr th:if="${#lists.isEmpty(listaUmbrales)}">
+                        <td colspan="6" class="text-center">No hay umbrales configurados.</td>
                     </tr>
-                    <tr>
-                        <td>RAM</td>
-                        <td>4096</td>
-                        <td>MB</td>
-                        <td>2025-04-05 09:45</td>
+                    <tr th:each="u : ${listaUmbrales}">
+                        <td th:text="${u.id}"></td>
+                        <td th:text="${u.tipoRecurso}"></td>
+                        <td th:text="${u.valorMinimo}"></td>
+                        <td th:text="${u.valorMaximo}"></td>
+                        <td th:text="${#temporals.format(u.fechaConfiguracion, 'yyyy-MM-dd HH:mm')}"></td>
                         <td>
-                            <button class="btn btn-danger btn-sm" onclick="eliminarUmbral(this)">
-                                <i class="fas fa-trash-alt me-1"></i>Eliminar
-                            </button>
-                        </td>
+                            <form th:action="@{/umbrales/eliminar/{id}(id=${u.id})}" method="post" onsubmit="return confirm('¿Estás seguro de eliminar este umbral?');" style="display: inline;">
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="fas fa-trash-alt"></i> Eliminar
+                                </button>
+                            </form>
+                            </td>
                     </tr>
                 </tbody>
             </table>
@@ -171,58 +173,7 @@
     </div>
 </div>
 
-<!-- Scripts -->
-<script>
-    function cambiarPlaceholder() {
-        const unidad = document.getElementById("unidad").value;
-        document.getElementById("valor").placeholder = unidad === "%" ? "70 (%)" : "2048 (MB)";
-    }
-
-    function guardarUmbral() {
-        const tipo = document.querySelector('input[name="tipo"]:checked').value;
-        const unidad = document.getElementById("unidad").value;
-        const valor = document.getElementById("valor").value;
-        const fechaHora = new Date().toISOString().slice(0, 16).replace("T", " ");
-
-        // Simula insertar en tabla
-        const tabla = document.getElementById("tablaUmbrales");
-        const fila = tabla.insertRow(0);
-        fila.innerHTML = `
-            <td>${tipo}</td>
-            <td>${valor}</td>
-            <td>${unidad}</td>
-            <td>${fechaHora}</td>
-            <td><button class="btn btn-danger btn-sm" onclick="eliminarUmbral(this)">
-                <i class="fas fa-trash-alt me-1"></i>Eliminar</button>
-            </td>`;
-
-        // Muestra alerta
-        mostrarAlerta("Umbral guardado exitosamente.", "success");
-
-        // Limpia valor
-        document.getElementById("valor").value = "";
-
-        return false; // Previene submit real
-    }
-
-    function eliminarUmbral(btn) {
-        if (confirm("¿Estás seguro de que deseas eliminar este umbral?")) {
-            const fila = btn.closest("tr");
-            fila.remove();
-            mostrarAlerta("Umbral eliminado correctamente.", "danger");
-        }
-    }
-
-    function mostrarAlerta(mensaje, tipo) {
-        const container = document.getElementById("alertContainer");
-        container.innerHTML = `
-            <div class="alert alert-${tipo} alert-dismissible fade show" role="alert">
-                ${mensaje}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-            </div>`;
-    }
-</script>
-
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/dashboard.js}"></script>
 </body>
 </html>
