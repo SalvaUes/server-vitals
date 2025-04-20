@@ -1,7 +1,7 @@
 package com.svit.server_vitals.service;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
+// import org.springframework.stereotype.Service;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-@Service
+// @Service
 public class DatabaseDetectorService {
 
     @Value("${mysql.url}")
@@ -28,6 +28,7 @@ public class DatabaseDetectorService {
 
     public Map<String, String> getDatabaseStatuses() {
         Map<String, String> statuses = new LinkedHashMap<>();
+        
         statuses.put("PostgreSQL", checkPostgres() ? "Operativo" : "No disponible");
         statuses.put("MySQL", checkMySQL() ? "Operativo" : "No disponible");
         statuses.put("Oracle", checkOracle() ? "Operativo" : "No disponible");
