@@ -7,6 +7,13 @@ import org.springframework.ui.Model; // Importar Model si se necesita pasar dato
 @Controller
 public class DashboardController {
 
+
+    @GetMapping("/")
+    public String redirectToDashboard() {
+        // Redirige automáticamente del path raíz "/" al path "/dashboard"
+        return "redirect:/dashboard";
+    }
+
     @GetMapping("/dashboard")
     public String mostrarDashboard(Model model) {
         // Aquí puedes añadir lógica si necesitas pasar datos al dashboard
