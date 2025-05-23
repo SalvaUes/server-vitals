@@ -5,17 +5,16 @@ import com.svit.server_vitals.service.UmbralService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.Autowired; // Asegúrate de tener esta importación
-import java.util.List; // Asegúrate de tener esta importación
-
+import org.springframework.beans.factory.annotation.Autowired; 
+import java.util.List; 
 @Controller
 @RequestMapping("/umbrales")
 public class UmbralController {
 
-    @Autowired // Usar Autowired para inyección
+    @Autowired 
     private UmbralService umbralService;
 
-    // No necesitas un constructor si usas @Autowired en el campo
+   
 
     @GetMapping
     public String mostrarFormulario(Model model) {
@@ -30,19 +29,19 @@ public class UmbralController {
         try {
             umbral.setFechaConfiguracion(java.time.LocalDateTime.now());
             umbralService.save(umbral);
-            return "redirect:/umbrales?exito"; // Redirige con parámetro de éxito
+            return "redirect:/umbrales?exito"; 
         } catch (Exception e) {
-            // Manejo básico de errores, podrías añadir un parámetro de error
+            e.printStackTrace(); 
             return "redirect:/umbrales?error";
         }
     }
 
-    // Añadir método para eliminar si es necesario (no estaba en tu HTML original pero sí en la tabla simulada)
+    
     @PostMapping("/eliminar/{id}")
     public String eliminarUmbral(@PathVariable Long id) {
         try {
-            // Asumiendo que tienes un método deleteById en tu servicio/repositorio
-            umbralService.deleteById(id); // Necesitarás añadir este método a UmbralService y UmbralRepository
+            
+            umbralService.deleteById(id); 
             return "redirect:/umbrales?eliminado";
         } catch (Exception e) {
             return "redirect:/umbrales?errorEliminar";

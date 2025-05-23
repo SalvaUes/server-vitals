@@ -30,9 +30,9 @@ public class MailService {
         log.info("Remitente establecido como: {}", mailUsername);
 
         try {
-            // --- LOG AÑADIDO ---
+            
             log.info(">>> EJECUTANDO mailSender.send() AHORA MISMO...");
-            // --- FIN LOG AÑADIDO ---
+            
             mailSender.send(message);
             log.info("Correo enviado con éxito (según JavaMailSender) a: {}", destinatario);
         } catch (MailException e) {

@@ -9,13 +9,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
     <style>
-        /* Estilos específicos si son necesarios, sino usar dashboard.css */
+        
         .umbral-container {
-            margin-left: 250px; /* Ajustar si la barra lateral cambia */
+            margin-left: 250px;
             padding: 20px;
             transition: margin-left 0.3s ease;
         }
-        .main-content.expanded .umbral-container { /* Ajustar si usas la clase expanded */
+        .main-content.expanded .umbral-container {
              margin-left: 70px;
         }
         .umbral-card {
@@ -26,8 +26,7 @@
             margin-bottom: 30px;
         }
          .save-btn {
-            /* Estilos del botón de guardar si son diferentes a los de bootstrap */
-            background-color: var(--primary-color); /* Usar variables CSS */
+            background-color: var(--primary-color); 
             border-color: var(--primary-color);
          }
          .save-btn:hover {

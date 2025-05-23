@@ -1,7 +1,7 @@
 package com.svit.server_vitals.service;
 
 import org.springframework.beans.factory.annotation.Value;
-// import org.springframework.stereotype.Service;
+
 
 import java.sql.Connection;
 import java.sql.DriverManager;

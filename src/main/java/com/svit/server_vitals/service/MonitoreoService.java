@@ -86,14 +86,13 @@ public class MonitoreoService {
 
                 for (Alerta alerta : alertasConfiguradas) {
                     String destinatario = alerta.getCorreoDestino();
-                    // --- CONTENIDO RESTAURADO ---
+                    
                     String asunto = "Alerta SVITS: Umbral Superado para " + tipoRecurso;
-                    // Usar el mensaje guardado en la base de datos (alerta.getMensaje())
                     String mensaje = alerta.getMensaje()
-                                         .replace("${tipoRecurso}", tipoRecurso) // Reemplaza si usas placeholders
+                                         .replace("${tipoRecurso}", tipoRecurso) 
                                          .replace("${valorActual}", String.valueOf(valorRecursoActual))
                                          .replace("${umbralMaximo}", String.valueOf(valorMaximoUmbral));
-                    // --- FIN CONTENIDO RESTAURADO ---
+                    
 
                     log.info("Enviando alerta para {} a {}...", tipoRecurso, destinatario);
                     mailService.enviarCorreoAlerta(destinatario, asunto, mensaje);
