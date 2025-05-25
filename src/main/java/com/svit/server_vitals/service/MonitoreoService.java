@@ -34,7 +34,7 @@ public class MonitoreoService {
         this.systemMonitorService = systemMonitorService;
     }
 
-    @Scheduled(fixedRate = 10000)
+    @Scheduled(fixedRate = 300000) // Ejecuta cada 5 minutos
     public void monitorearRecursos() {
         log.debug("Ejecutando monitorearRecursos...");
         List<Umbral> umbrales = umbralRepository.findAll();
