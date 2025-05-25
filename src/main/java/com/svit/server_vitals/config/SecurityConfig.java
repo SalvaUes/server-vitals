@@ -21,23 +21,21 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-// --- IMPORTAR PostConstruct ---
 import jakarta.annotation.PostConstruct;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
-import org.slf4j.Logger; // Importar Logger
-import org.slf4j.LoggerFactory; // Importar LoggerFactory
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import static org.springframework.security.config.Customizer.withDefaults; // Importar para withDefaults
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    // --- AÑADIR LOGGER ---
     private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
 
     @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri}")
@@ -46,21 +44,21 @@ public class SecurityConfig {
     @Value("${spring.security.oauth2.resourceserver.jwt.audience}")
     private String audience;
 
-    // --- MÉTODO AÑADIDO PARA LOGGING ---
     @PostConstruct
     public void logAuth0Configuration() {
         log.info("----- DIAGNÓSTICO Auth0 Configuration -----");
         String envAuth0Domain = System.getenv("AUTH0_DOMAIN");
         String envAuth0Audience = System.getenv("AUTH0_AUDIENCE");
+        String envAuth0ClientId = System.getenv("AUTH0_CLIENT_ID"); // Log para el nuevo Client ID
 
         log.info("Valor de System.getenv(\"AUTH0_DOMAIN\"): {}", envAuth0Domain);
         log.info("Valor de System.getenv(\"AUTH0_AUDIENCE\"): {}", envAuth0Audience);
+        log.info("Valor de System.getenv(\"AUTH0_CLIENT_ID\"): {}", envAuth0ClientId); // Log para el nuevo Client ID
         
         log.info("Valor inyectado en @Value para 'issuerUri' (construido desde AUTH0_DOMAIN): {}", issuerUri);
         log.info("Valor inyectado en @Value para 'audience' (desde AUTH0_AUDIENCE): {}", audience);
         log.info("------------------------------------------");
     }
-    // --- FIN MÉTODO AÑADIDO ---
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -71,6 +69,9 @@ public class SecurityConfig {
                     .anyRequest().authenticated()
             )
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            // --- AÑADIR ESTO PARA EL FLUJO DE LOGIN ---
+            .oauth2Login(withDefaults()) // Habilita el flujo de login con el proveedor OIDC (Auth0)
+            // --- FIN DE LA ADICIÓN ---
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.decoder(jwtDecoder()).jwtAuthenticationConverter(jwtAuthenticationConverter())));
 
         return http.build();
@@ -78,8 +79,6 @@ public class SecurityConfig {
 
     @Bean
     JwtDecoder jwtDecoder() {
-        // Este método fallará si 'audience' o 'issuerUri' son nulos o vacíos debido a la configuración.
-        // El log en @PostConstruct nos dirá qué valores tienen antes de llegar aquí.
         OAuth2TokenValidator<Jwt> audienceValidator = new AudienceValidator(audience);
         OAuth2TokenValidator<Jwt> withIssuer = JwtValidators.createDefaultWithIssuer(issuerUri);
         OAuth2TokenValidator<Jwt> delegatingValidator = new DelegatingOAuth2TokenValidator<>(withIssuer, audienceValidator);
