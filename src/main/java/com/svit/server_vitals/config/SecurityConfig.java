@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -14,6 +16,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoders;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -29,7 +32,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.springframework.security.config.Customizer.withDefaults; // Importar para withDefaults
+import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
@@ -44,16 +47,23 @@ public class SecurityConfig {
     @Value("${spring.security.oauth2.resourceserver.jwt.audience}")
     private String audience;
 
+    // Inyectar ClientRegistrationRepository para el logout OIDC
+    private final ClientRegistrationRepository clientRegistrationRepository;
+
+    public SecurityConfig(ClientRegistrationRepository clientRegistrationRepository) {
+        this.clientRegistrationRepository = clientRegistrationRepository;
+    }
+
     @PostConstruct
     public void logAuth0Configuration() {
         log.info("----- DIAGNÓSTICO Auth0 Configuration -----");
         String envAuth0Domain = System.getenv("AUTH0_DOMAIN");
         String envAuth0Audience = System.getenv("AUTH0_AUDIENCE");
-        String envAuth0ClientId = System.getenv("AUTH0_CLIENT_ID"); // Log para el nuevo Client ID
+        String envAuth0ClientId = System.getenv("AUTH0_CLIENT_ID");
 
         log.info("Valor de System.getenv(\"AUTH0_DOMAIN\"): {}", envAuth0Domain);
         log.info("Valor de System.getenv(\"AUTH0_AUDIENCE\"): {}", envAuth0Audience);
-        log.info("Valor de System.getenv(\"AUTH0_CLIENT_ID\"): {}", envAuth0ClientId); // Log para el nuevo Client ID
+        log.info("Valor de System.getenv(\"AUTH0_CLIENT_ID\"): {}", envAuth0ClientId);
         
         log.info("Valor inyectado en @Value para 'issuerUri' (construido desde AUTH0_DOMAIN): {}", issuerUri);
         log.info("Valor inyectado en @Value para 'audience' (desde AUTH0_AUDIENCE): {}", audience);
@@ -69,13 +79,27 @@ public class SecurityConfig {
                     .anyRequest().authenticated()
             )
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            // --- AÑADIR ESTO PARA EL FLUJO DE LOGIN ---
-            .oauth2Login(withDefaults()) // Habilita el flujo de login con el proveedor OIDC (Auth0)
-            // --- FIN DE LA ADICIÓN ---
+            .oauth2Login(withDefaults())
+            // --- CONFIGURACIÓN DE LOGOUT ---
+            .logout(logout -> logout
+                .logoutSuccessHandler(oidcLogoutSuccessHandler())
+            )
+            // --- FIN CONFIGURACIÓN DE LOGOUT ---
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.decoder(jwtDecoder()).jwtAuthenticationConverter(jwtAuthenticationConverter())));
 
         return http.build();
     }
+
+    // --- HANDLER PARA LOGOUT OIDC ---
+    private LogoutSuccessHandler oidcLogoutSuccessHandler() {
+        OidcClientInitiatedLogoutSuccessHandler oidcLogoutSuccessHandler =
+                new OidcClientInitiatedLogoutSuccessHandler(this.clientRegistrationRepository);
+        // Establece la URL a la que Auth0 debe redirigir DESPUÉS de cerrar su sesión.
+        // Debe ser una de tus "Allowed Logout URLs" en Auth0.
+        oidcLogoutSuccessHandler.setPostLogoutRedirectUri("{baseUrl}"); // Spring reemplaza {baseUrl} con la URL base de tu app
+        return oidcLogoutSuccessHandler;
+    }
+    // --- FIN HANDLER ---
 
     @Bean
     JwtDecoder jwtDecoder() {
