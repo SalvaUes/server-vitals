@@ -5,43 +5,43 @@ import com.svit.server_vitals.service.UmbralService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.Autowired; 
-import java.util.List; 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+import java.util.List;
+
 @Controller
 @RequestMapping("/umbrales")
 public class UmbralController {
 
-    @Autowired 
+    @Autowired
     private UmbralService umbralService;
 
-   
-
     @GetMapping
+    @PreAuthorize("isAuthenticated()")
     public String mostrarFormulario(Model model) {
-        model.addAttribute("umbral", new Umbral()); // Objeto para el formulario
+        model.addAttribute("umbral", new Umbral());
         List<Umbral> listaUmbrales = umbralService.getAll();
-        model.addAttribute("listaUmbrales", listaUmbrales); // Lista para la tabla
-        return "umbral"; // Nombre de la plantilla HTML (umbral.html)
+        model.addAttribute("listaUmbrales", listaUmbrales);
+        return "umbral";
     }
 
     @PostMapping("/guardar")
-    public String guardarUmbral(@ModelAttribute("umbral") Umbral umbral) { // Recibe el objeto del formulario
+    @PreAuthorize("hasAuthority('SCOPE_write:umbrales') or hasRole('admin')")
+    public String guardarUmbral(@ModelAttribute("umbral") Umbral umbral) {
         try {
             umbral.setFechaConfiguracion(java.time.LocalDateTime.now());
             umbralService.save(umbral);
-            return "redirect:/umbrales?exito"; 
+            return "redirect:/umbrales?exito";
         } catch (Exception e) {
-            e.printStackTrace(); 
+            e.printStackTrace();
             return "redirect:/umbrales?error";
         }
     }
 
-    
     @PostMapping("/eliminar/{id}")
     public String eliminarUmbral(@PathVariable Long id) {
         try {
-            
-            umbralService.deleteById(id); 
+            umbralService.deleteById(id);
             return "redirect:/umbrales?eliminado";
         } catch (Exception e) {
             return "redirect:/umbrales?errorEliminar";
