@@ -12,16 +12,6 @@
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
 </head>
 <body>
-            <!-- Visible solo para admins -->
-        <div th:if="${#authentication.principal.role == 'ROLE_ADMIN'}">
-            <a href="/admin/config">Ir a Configuración de Administrador</a>
-        </div>
-
-        <!-- Visible para todos -->
-        <div>
-            Bienvenido <span th:text="${#authentication.principal.name}">Usuario</span>
-        </div>
-
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h4>SVITS</h4>
