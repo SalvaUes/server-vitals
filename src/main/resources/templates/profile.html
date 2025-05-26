@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil del Usuario</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+     <style>
+        
+        .container {
+            max-width: 600px;
+            margin: 80px auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            color: #111827;
+        }
+
+        p {
+            color: #374151;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        strong {
+            color: #111827;
+        }
+
+        a.logout-button {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #ef4444;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background-color 0.3s ease;
+        }
+
+        a.logout-button:hover {
+            background-color: #dc2626;
+        }
+    </style>
+    
+</head>
+<body>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h4>SVITS</h4>
+            <button class="toggle-btn" id="toggleSidebar" aria-label="Toggle sidebar">
+                <i class="fas fa-bars" aria-hidden="true"></i>
+            </button>
+        </div>
+          <div class="sidebar-menu">
+             <a href="/profile" class="menu-item">
+                <i class="fas fa-user" aria-hidden="true"></i>
+                <span>Perfil</span>
+            </a>
+            <a href="/umbrales" class="menu-item">
+                <i class="fas fa-sliders-h" aria-hidden="true"></i>
+                <span>Umbrales</span>
+            </a>
+            <a href="/correo" class="menu-item"> <i class="fas fa-envelope" aria-hidden="true"></i>
+                <span>Alertas</span>
+            </a>
+            <a href="/dashboard" class="menu-item active"> <i class="fas fa-tachometer-alt" aria-hidden="true"></i>
+                <span>Dashboard</span>
+            </a>
+        </div>
+    </div>
+    <div class="main-content" id="mainContent">
+         <div class="container mt-4 mb-5">
+            <h1>Bienvenido, <span th:text="${user.name}">Usuario</span></h1>
+            <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
+            <p><strong>ID:</strong> <span th:text="${user.sub}"></span></p>
+            
+        </div>
+    </div>
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>
