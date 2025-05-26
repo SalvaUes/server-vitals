@@ -1,17 +1,26 @@
 package com.svit.server_vitals.controller;
 
-import org.springframework.security.access.prepost.PreAuthorize;
+import com.svit.server_vitals.config.CustomOAuth2User;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
-@RequestMapping("/api/admin")
+@Controller
 public class AdminController {
 
-    @GetMapping("/dashboard")
-    @PreAuthorize("hasAuthority('ROLE_admin')")
-    public String adminDashboard() {
-        return "Welcome Admin!";
+    @GetMapping("/admin")
+    public String adminHome(@AuthenticationPrincipal CustomOAuth2User user) {
+        if (!"ROLE_ADMIN".equals(user.getRole())) {
+            return "redirect:/dashboard";
+        }
+        return "admin-home";
+    }
+
+    @GetMapping("/admin/settings")
+    public String adminSettings(@AuthenticationPrincipal CustomOAuth2User user) {
+        if (!"ROLE_ADMIN".equals(user.getRole())) {
+            return "redirect:/dashboard";
+        }
+        return "admin-settings";
     }
 }

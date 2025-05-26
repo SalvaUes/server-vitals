@@ -1,6 +1,5 @@
 package com.svit.server_vitals.config;
 
-
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -20,7 +19,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         "vl23003@ues.edu.sv"
     );
 
-   @Override
+    @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
         OAuth2User user = super.loadUser(userRequest);
         Map<String, Object> attributes = user.getAttributes();
@@ -31,4 +30,5 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return new CustomOAuth2User(user, role);
     }
 }
+
 

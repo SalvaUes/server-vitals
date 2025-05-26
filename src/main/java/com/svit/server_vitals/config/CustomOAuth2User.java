@@ -13,7 +13,7 @@ public class CustomOAuth2User implements OAuth2User {
     private final OAuth2User oauth2User;
     private final String role;
 
-   public CustomOAuth2User(OAuth2User oauth2User, String role) {
+    public CustomOAuth2User(OAuth2User oauth2User, String role) {
         this.oauth2User = oauth2User;
         this.role = role;
     }
