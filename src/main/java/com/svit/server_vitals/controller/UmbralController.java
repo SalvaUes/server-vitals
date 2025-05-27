@@ -11,8 +11,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import java.util.List; 
 
 @Controller
-    @GetMapping("/umbrales")
-    @PreAuthorize("hasRole('ADMIN')")
+@RequestMapping("/umbrales")
+@PreAuthorize("hasRole('ADMIN')")
 public class UmbralController {
 
     @Autowired 

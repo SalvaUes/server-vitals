@@ -16,9 +16,10 @@ spring:
             provider: auth0
         provider:
           auth0:
-            issuer-uri: https://dev-t6rtm0quw3eg5y03.us.auth0.com/
+            issuer-uri: https://dev-t6rtm0quw3eg5y03.us.auth0.com/ 
+      resourceserver: 
+        jwt:
+          issuer-uri: ${spring.security.oauth2.client.provider.auth0.issuer-uri} 
 
-
-            #dev-t6rtm0quw3eg5y03.us.auth0.com
-          #t5JHbAt94sFHiyu5ZwbgNmN7bTWT4hvo
-          #6BT4phvLJckYeDrOcGirTARKjVbdfZPQ_g-LmOx7Y2hOLz9m17HblTJEi2WEkErL
+auth0: 
+  namespace: https://svits.com/ 
