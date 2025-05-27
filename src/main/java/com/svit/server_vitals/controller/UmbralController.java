@@ -5,10 +5,14 @@ import com.svit.server_vitals.service.UmbralService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.beans.factory.annotation.Autowired; 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import java.util.List; 
+
 @Controller
-@RequestMapping("/umbrales")
+    @GetMapping("/umbrales")
+    @PreAuthorize("hasRole('ADMIN')")
 public class UmbralController {
 
     @Autowired 

@@ -10,23 +10,27 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
     @Autowired
     private CustomOAuth2UserService customOAuth2UserService;
-
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/", "/public/**").permitAll()
-                .requestMatchers("/admin/**").hasRole("ADMIN")
-                .anyRequest().authenticated()
+@Override
+@Bean
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+        .authorizeHttpRequests(authz -> authz
+            .requestMatchers("/", "/public/**").permitAll()
+            .requestMatchers("/dashboard", "/profile").hasAnyRole("USER", "ADMIN")
+            .requestMatchers("/umbrales", "/correo").hasRole("ADMIN") // 🚫 Solo ADMIN accede
+            .anyRequest().authenticated()
+        )
+        .oauth2Login(oauth2 -> oauth2
+            .userInfoEndpoint(userInfo -> userInfo
+                .userService(customOAuth2UserService)
             )
-            .oauth2Login(oauth2 -> oauth2
-                .userInfoEndpoint(userInfo -> userInfo
-                    .userService(customOAuth2UserService)
-                )
-            );
+        )
+        .logout(logout -> logout
+            .logoutSuccessUrl("/")
+        );
 
-        return http.build();
-}
+    return http.build();
 }
