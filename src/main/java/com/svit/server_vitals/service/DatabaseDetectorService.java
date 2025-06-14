@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-// @Service
+
 public class DatabaseDetectorService {
 
     @Value("${mysql.url}")

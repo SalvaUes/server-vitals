@@ -43,6 +43,9 @@ public class AlertaController {
         model.addAttribute("listaAlertas", listaAlertas);
         model.addAttribute("alerta", new Alerta());
 
+        
+        model.addAttribute("activePage", "correo");
+
         return "correo";
     }
 

@@ -93,7 +93,6 @@ document.addEventListener('DOMContentLoaded', function () {
     function initializeSSE() {
         console.log('Init SSE');
         updateConnectionStatus('Connecting', 'status-connecting');
-
         const eventSource = new EventSource('/api/system/resources-stream');
 
         eventSource.onopen = function () {
@@ -159,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             badge.classList.add('status-critical');
                           }
                         });
-                      })
+                    })
                     .catch(error => {
                         console.error('Error al obtener estados de bases de datos:', error);
                     });
@@ -181,5 +180,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    initializeSSE();
+    
+    const dashboardElement = document.getElementById('cpuCircle');
+    if (dashboardElement) {
+        
+        console.log("Página del Dashboard detectada. Iniciando conexión SSE.");
+        initializeSSE();
+    } else {
+        
+        console.log("No es la página del Dashboard. La conexión SSE no se iniciará.");
+    }
 });

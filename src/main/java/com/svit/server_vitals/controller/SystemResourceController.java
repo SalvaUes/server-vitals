@@ -23,7 +23,7 @@ public class SystemResourceController {
 
     private static final Logger log = LoggerFactory.getLogger(SystemResourceController.class);
 
-    // inyeccion dek servicio
+    
 
     @Autowired
     private SystemMonitorService systemMonitorService;
@@ -36,7 +36,7 @@ public class SystemResourceController {
         return ResponseEntity.ok(latestMetrics);
     }
 
-    // ENDPOINT
+    
 
     private final ExecutorService sseExecutor = Executors.newCachedThreadPool(r -> {
          Thread t = new Thread(r);

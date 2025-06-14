@@ -12,7 +12,7 @@ public class DatabaseController {
     @Autowired
     private DatabaseDetectorService service;
 
-    // @GetMapping("/status")
+    
     public Map<String, String> getStatuses() {
         return service.getDatabaseStatuses();
     }

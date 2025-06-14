@@ -28,7 +28,7 @@ public class SystemMonitorService {
     private final GlobalMemory memory = hal.getMemory();
     private final Sensors sensors = hal.getSensors();
 
-    // Almacena los ticks de CPU de la ultima medicioon
+    
     private long[] prevCpuTicks;
 
 
@@ -37,19 +37,19 @@ public class SystemMonitorService {
 
     
     
-         // Constructor
+        
     @PostConstruct
     private void initialize() {
         log.info("Initializing SystemMonitorService...");
         
 
 
-          // Inicializa los ticks de CPU para la primera medicio
+          
         this.prevCpuTicks = processor.getSystemCpuLoadTicks();
 
         
         try {
-            Thread.sleep(500); // 500ms de espera inicial
+            Thread.sleep(500); 
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             log.warn("Initialization sleep interrupted.");
@@ -66,7 +66,7 @@ public class SystemMonitorService {
         log.debug("Updating system metrics..."); 
 
 
-        // para el uso del CPU *
+        
         long[] currentCpuTicks = processor.getSystemCpuLoadTicks();
         double cpuUsage = 0.0; 
         if (this.prevCpuTicks != null) { 
@@ -88,7 +88,7 @@ public class SystemMonitorService {
 
 
 
-        // para el uso de la memoria
+        
         long totalMemory = memory.getTotal();
         long availableMemory = memory.getAvailable();
         long usedMemory = totalMemory - availableMemory;
@@ -97,7 +97,7 @@ public class SystemMonitorService {
 
 
 
-        // para el uso del disco
+        
         FileSystem fileSystem = os.getFileSystem();
         List<OSFileStore> fsArray = fileSystem.getFileStores(true); 
         long totalDisk = 0;
@@ -114,7 +114,7 @@ public class SystemMonitorService {
 
 
 
-        // nuevo DTO con los datos obtenidos
+        
         SystemResourceDto dto = new SystemResourceDto();
         try {
             dto.setServerName(os.getNetworkParams().getHostName());
@@ -142,7 +142,7 @@ public class SystemMonitorService {
         log.debug("Metrics updated: CPU {}%", dto.getCpuUsage());
     }
 
-    // para obtener las metricas mas recientes
+    
 
     public SystemResourceDto getLatestMetrics() {
         
@@ -155,7 +155,7 @@ public class SystemMonitorService {
         return metrics;
     }
 
-    //  por si no hay datos todavia
+    
 
     private SystemResourceDto createDefaultDto() {
 
