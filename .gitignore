@@ -36,3 +36,6 @@ build/
 
 .qodo/ 
 
+# Ignorar archivos de configuración de perfiles locales
+application-dev.properties
+

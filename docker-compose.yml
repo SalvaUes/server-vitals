@@ -1,38 +1,27 @@
 
+version: '3.8'
+
 services:
-  java_db:
-    container_name: server_vitals_db
-    image: postgres:latest
-    ports:
-      - "5433:5432"
+  # Define el servicio de la base de datos PostgreSQL
+  db:
+    image: postgres:14-alpine  # Usamos una imagen ligera de PostgreSQL
+    container_name: svits-postgres-db
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: postgres
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
-  java_app:
-    container_name: server_vitals_app
-    image: parcial01-java:1.0
-    build: .
+      POSTGRES_DB: svits_local_db       # Nombre de la base de datos
+      POSTGRES_USER: localuser          # Usuario para la base de datos
+      POSTGRES_PASSWORD: localpassword  # Contraseña para la base de datos
     ports:
-      - "8080:8080"
-    depends_on:
-      java_db:
-        condition: service_healthy
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://java_db:5432/postgres
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-    privileged: true
+      # Mapea el puerto 5432 del contenedor al puerto 5432 de tu máquina local
+      # para que tu aplicación Spring Boot pueda conectarse.
+      - "5432:5432"
     volumes:
-      - /proc:/host_proc:ro
-      - /sys:/host_sys:ro
-    extra_hosts:
-      - "host.docker.internal:host-gateway" # importante para Linux
+      # Monta un volumen para que los datos de la base de datos persistan
+      # incluso si el contenedor se detiene o se elimina.
+      - postgres_data:/var/lib/postgresql/data
 
+# Define el volumen para la persistencia de datos
+volumes:
+  postgres_data:
 
+# Ignorar configuración de Docker Compose local
+docker-compose.yml
