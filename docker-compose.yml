@@ -2,26 +2,26 @@
 version: '3.8'
 
 services:
-  # Define el servicio de la base de datos PostgreSQL
+  
   db:
-    image: postgres:14-alpine  # Usamos una imagen ligera de PostgreSQL
+    image: postgres:14-alpine  
     container_name: svits-postgres-db
     environment:
-      POSTGRES_DB: svits_local_db       # Nombre de la base de datos
-      POSTGRES_USER: localuser          # Usuario para la base de datos
-      POSTGRES_PASSWORD: localpassword  # Contraseña para la base de datos
+      POSTGRES_DB: svits_local_db       
+      POSTGRES_USER: localuser          
+      POSTGRES_PASSWORD: localpassword  
     ports:
-      # Mapea el puerto 5432 del contenedor al puerto 5432 de tu máquina local
-      # para que tu aplicación Spring Boot pueda conectarse.
+      
+      
       - "5432:5432"
     volumes:
-      # Monta un volumen para que los datos de la base de datos persistan
-      # incluso si el contenedor se detiene o se elimina.
+      
+      
       - postgres_data:/var/lib/postgresql/data
 
-# Define el volumen para la persistencia de datos
+
 volumes:
   postgres_data:
 
-# Ignorar configuración de Docker Compose local
+
 docker-compose.yml
