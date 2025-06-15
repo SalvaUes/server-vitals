@@ -94,13 +94,14 @@ public class MonitoreoService {
             log.info("Reporte enviado y fecha actualizada para alerta ID {}", alerta.getId());
         } else {
             log.info("No se superó el umbral para {} en el periodo revisado para la alerta ID {}.", alerta.getTipoRecurso(), alerta.getId());
-            // Actualizamos la fecha de todos modos para no volver a revisar hasta el próximo intervalo
+            
+            
             alerta.setUltimaNotificacionEnviada(LocalDateTime.now());
             alertaRepository.save(alerta);
         }
     }
 
-    // ===== INICIO: MÉTODO DE CONSTRUCCIÓN DE CORREO CORREGIDO Y MÁS CLARO =====
+    
     private String construirCuerpoCorreoResumen(Alerta alerta, Umbral umbral, List<MetricaHistorial> metricasSuperadas, LocalDateTime fechaDesde) {
         MetricaHistorial picoMetrica = metricasSuperadas.stream()
             .max(Comparator.comparing(m -> getValorPorRecurso(alerta.getTipoRecurso(), m)))
@@ -117,7 +118,8 @@ public class MonitoreoService {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
         LocalDateTime fechaHasta = LocalDateTime.now();
 
-        // ** LA CORRECCIÓN ESTÁ AQUÍ **
+        
+        
         return String.format(
             "%s\n\n" +
             "===============================================================\n" +
