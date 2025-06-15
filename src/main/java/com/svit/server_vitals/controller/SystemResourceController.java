@@ -63,7 +63,7 @@ public class SystemResourceController {
                 emitter.send(SseEmitter.event().name("system-update").id(String.valueOf(System.currentTimeMillis())).data(initialMetrics));
                 log.debug("Sent initial SSE data.");
 
-                // enviar actualizaciones
+                
 
                 while (true) { 
                     TimeUnit.MILLISECONDS.sleep(1000); // Espera 1 segundos

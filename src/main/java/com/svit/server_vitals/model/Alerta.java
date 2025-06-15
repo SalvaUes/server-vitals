@@ -1,9 +1,7 @@
 package com.svit.server_vitals.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
 
 @Entity
 public class Alerta {
@@ -12,44 +10,35 @@ public class Alerta {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
+    private String correoDestino;
+
+    @Column(nullable = false)
     private String tipoRecurso;
 
-    private String correoDestino;
     private String mensaje;
 
     
-    // Getters y setters
-    public Long getId() {
-        return id;
-    }
+    @Column(nullable = false)
+    private Integer intervaloMinutos;
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+    private LocalDateTime ultimaNotificacionEnviada;
+    
+    
 
-    public String getTipoRecurso() {
-        return tipoRecurso;
-    }
-
-    public void setTipoRecurso(String tipoRecurso) {
-        this.tipoRecurso = tipoRecurso;
-    }
-
-    public String getCorreoDestino() {
-        return correoDestino;
-    }
-
-    public void setCorreoDestino(String correoDestino) {
-        this.correoDestino = correoDestino;
-    }
-
-
-    public String getMensaje() {
-        return mensaje;
-    }
-
-    public void setMensaje(String mensaje) {
-        this.mensaje = mensaje;
-    }
-
+    
+   
+    
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getCorreoDestino() { return correoDestino; }
+    public void setCorreoDestino(String correoDestino) { this.correoDestino = correoDestino; }
+    public String getTipoRecurso() { return tipoRecurso; }
+    public void setTipoRecurso(String tipoRecurso) { this.tipoRecurso = tipoRecurso; }
+    public String getMensaje() { return mensaje; }
+    public void setMensaje(String mensaje) { this.mensaje = mensaje; }
+    public Integer getIntervaloMinutos() { return intervaloMinutos; }
+    public void setIntervaloMinutos(Integer intervaloMinutos) { this.intervaloMinutos = intervaloMinutos; }
+    public LocalDateTime getUltimaNotificacionEnviada() { return ultimaNotificacionEnviada; }
+    public void setUltimaNotificacionEnviada(LocalDateTime ultimaNotificacionEnviada) { this.ultimaNotificacionEnviada = ultimaNotificacionEnviada; }
 }

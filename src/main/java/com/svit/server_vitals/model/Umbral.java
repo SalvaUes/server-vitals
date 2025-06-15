@@ -28,11 +28,13 @@ public class Umbral {
 
     private LocalDateTime fechaConfiguracion;
 
-    // Constructor por defecto
+    
+    
     public Umbral() {
     }
 
-    // Getters y Setters
+    
+    
     public Long getId() {
         return id;
     }

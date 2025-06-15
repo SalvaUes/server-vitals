@@ -2,20 +2,15 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SVITS - Alertas</title>
+    <title>SVITS - Configuración de Alertas</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/dashboard.css}">
 </head>
 <body>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h4>SVITS</h4>
-            <button class="toggle-btn" id="toggleSidebar" aria-label="Toggle sidebar">
-                <i class="fas fa-bars" aria-hidden="true"></i>
-            </button>
         </div>
         <div class="sidebar-menu">
             <a th:href="@{/profile}" class="menu-item" th:classappend="${activePage == 'profile' ? 'active' : ''}" sec:authorize="isAuthenticated()">
@@ -42,83 +37,91 @@
             </form>
         </div>
     </div>
-
     <div class="main-content" id="mainContent">
         <header class="dashboard-header">
             <h1>SVITS - Configuración de Alertas</h1>
-            <div class="server-info">
-                <div id="serverName">Servidor: <strong id="serverNameValue">Conectando...</strong></div>
-                <div class="server-status status-connecting" id="serverStatus">Conectando</div>
-            </div>
         </header>
+
         <div class="container mt-4 mb-5">
-             <div th:if="${param.guardado}" class="alert alert-success alert-dismissible fade show" role="alert">
-                 Configuración de alerta guardada exitosamente.
-                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-             </div>
-             <div th:if="${param.eliminado}" class="alert alert-success alert-dismissible fade show" role="alert">
-                 Alerta eliminada correctamente.
-                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-             </div>
-             <div th:if="${param.errorEliminar}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                 Error al eliminar la alerta.
-                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-             </div>
-             <h2>Configurar Nueva Alerta</h2>
-            <form th:action="@{/enviar-correo}" method="post" class="row g-3 mt-3">
-                <div class="col-md-6">
-                    <label for="destinatario" class="form-label">Correo destinatario</label>
-                    <input type="email" class="form-control" id="destinatario" name="destinatario" required>
-                </div>
-                <div class="col-md-6">
-                    <label for="tipoRecurso" class="form-label">Seleccionar Umbral Asociado</label>
-                    <select name="tipoRecurso" id="tipoRecurso" class="form-select" required>
-                        <option value="" disabled selected>-- Seleccione un tipo --</option>
-                        <option th:each="umbral : ${listaUmbrales}"
-                                th:value="${umbral.tipoRecurso}"
-                                th:text="${umbral.tipoRecurso}"></option>
-                    </select>
-                     <div th:if="${#lists.isEmpty(listaUmbrales)}" class="form-text text-warning">
-                         No hay umbrales configurados para asociar. Por favor, configure umbrales primero.
-                     </div>
-                </div>
-                <div class="col-12">
-                    <label for="contenido" class="form-label">Mensaje de Alerta</label>
-                    <textarea class="form-control" id="contenido" name="contenido" rows="4" required placeholder="Ej: ¡Alerta! El uso de ${tipoRecurso} ha superado el límite."></textarea>
-                </div>
-                <div class="col-12">
-                    <button type="submit" class="btn btn-primary">Guardar Configuración de Alerta</button>
-                </div>
-            </form>
+            <div th:if="${exito_guardado}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <strong th:text="${exito_guardado}"></strong>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${exito_eliminado}" class="alert alert-info alert-dismissible fade show" role="alert">
+                <strong th:text="${exito_eliminado}"></strong>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${error_guardado}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <strong th:text="${error_guardado}"></strong>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <section class="config-section mb-5">
+                <h2>Configurar Nueva Notificación de Alerta</h2>
+                <form th:action="@{/correo/guardar}" th:object="${nuevaAlerta}" method="post" class="p-4 border rounded-3 bg-light">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label for="correoDestino" class="form-label">Correo Destinatario</label>
+                            <input type="email" class="form-control" id="correoDestino" th:field="*{correoDestino}" placeholder="ejemplo@correo.com" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="tipoRecurso" class="form-label">Asociar a Recurso</label>
+                            <select id="tipoRecurso" th:field="*{tipoRecurso}" class="form-select" required>
+                                <option value="">-- Seleccione un recurso --</option>
+                                <option value="CPU">CPU</option>
+                                <option value="RAM">RAM</option>
+                                <option value="DISCO">DISCO</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="intervaloMinutos" class="form-label">Enviar Correo de Resumen Cada:</label>
+                            <select id="intervaloMinutos" th:field="*{intervaloMinutos}" class="form-select" required>
+                                <option value="30">30 Minutos</option>
+                                <option value="60">1 Hora</option>
+                                <option value="120">2 Horas</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label for="mensaje" class="form-label">Mensaje Personalizado</label>
+                            <textarea class="form-control" id="mensaje" th:field="*{mensaje}" rows="3" required placeholder="Ej: ¡Atención! El recurso CPU ha superado el umbral crítico."></textarea>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary w-100">Guardar Alerta</button>
+                        </div>
+                    </div>
+                </form>
+            </section>
+
             <hr class="my-5">
+
             <h2 class="mt-4">Alertas Guardadas</h2>
             <div class="table-responsive">
-                <table class="table table-striped table-bordered mt-3">
-                    <thead class="table-dark">
+                <table class="table table-striped table-hover">
+                    <thead>
                         <tr>
                             <th>ID</th>
                             <th>Correo Destino</th>
                             <th>Recurso Asociado</th>
-                            <th>Mensaje Configurado</th>
+                            <th>Mensaje</th>
+                            <th>Frecuencia (min)</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr th:if="${#lists.isEmpty(listaAlertas)}">
-                            <td colspan="5" class="text-center">No hay alertas configuradas todavía.</td>
-                        </tr>
                         <tr th:each="alerta : ${listaAlertas}">
                             <td th:text="${alerta.id}"></td>
                             <td th:text="${alerta.correoDestino}"></td>
                             <td th:text="${alerta.tipoRecurso}"></td>
                             <td th:text="${alerta.mensaje}"></td>
+                            <td th:text="${alerta.intervaloMinutos}"></td>
                             <td>
-                                <form th:action="@{/alerta/eliminar/{id}(id=${alerta.id})}" method="post" onsubmit="return confirm('¿Estás seguro de eliminar esta configuración de alerta?');" style="display: inline;">
-                                    <button type="submit" class="btn btn-danger btn-sm">
-                                        <i class="fas fa-trash-alt"></i> Eliminar
-                                    </button>
+                                <form th:action="@{/correo/eliminar/{id}(id=${alerta.id})}" method="post">
+                                    <button type="submit" class="btn btn-sm btn-danger">Eliminar</button>
                                 </form>
                             </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(listaAlertas)}">
+                            <td colspan="6" class="text-center">No hay alertas configuradas.</td>
                         </tr>
                     </tbody>
                 </table>
