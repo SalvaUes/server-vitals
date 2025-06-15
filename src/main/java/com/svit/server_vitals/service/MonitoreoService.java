@@ -12,8 +12,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,67 +39,130 @@ public class MonitoreoService {
     }
 
     @Scheduled(cron = "0 */5 * * * ?")
-    public void revisarSistemaYNotificar() {
-        log.info("Iniciando ciclo de monitoreo y notificación...");
+    public void recopilarYGuardarMetricas() {
+        log.info("Recopilando y guardando métricas...");
         SystemResourceDto metricasActuales = systemMonitorService.getLatestMetrics();
-        if (metricasActuales == null) {
-            log.warn("No se pudieron obtener las métricas del sistema. Se omite este ciclo.");
-            return;
-        }
+        if (metricasActuales == null) { return; }
         guardarMetricaEnHistorial(metricasActuales);
-        List<Umbral> todosLosUmbrales = umbralRepository.findAll();
-        List<Umbral> umbralesSuperados = todosLosUmbrales.stream()
-            .filter(umbral -> umbralSuperado(umbral, metricasActuales))
-            .collect(Collectors.toList());
-        if (umbralesSuperados.isEmpty()) {
-            log.info("Todos los recursos están dentro de los umbrales. Fin del ciclo.");
-            return;
-        }
-        log.warn("Se detectaron {} umbrales superados. Procesando notificaciones...", umbralesSuperados.size());
-        for (Umbral umbral : umbralesSuperados) {
-            procesarNotificacionesParaRecurso(umbral.getTipoRecurso(), metricasActuales);
-        }
-        log.info("Ciclo de monitoreo y notificación finalizado.");
     }
-
-    private void procesarNotificacionesParaRecurso(String tipoRecurso, SystemResourceDto metricasActuales) {
-        List<Alerta> alertasParaRecurso = alertaRepository.findByTipoRecurso(tipoRecurso);
-        for (Alerta alerta : alertasParaRecurso) {
-            LocalDateTime ultimoEnvio = alerta.getUltimaNotificacionEnviada();
-            Integer intervalo = alerta.getIntervaloMinutos();
-            if (ultimoEnvio == null || ultimoEnvio.plusMinutes(intervalo).isBefore(LocalDateTime.now())) {
-                log.info("¡Es hora de notificar! Enviando alerta para {} al correo {}.", tipoRecurso, alerta.getCorreoDestino());
-                String asunto = String.format("Alerta de Sistema SVITS: %s", tipoRecurso);
-                String cuerpo = construirCuerpoCorreo(alerta.getMensaje(), metricasActuales);
-                mailService.enviarCorreoAlerta(alerta.getCorreoDestino(), asunto, cuerpo);
-                alerta.setUltimaNotificacionEnviada(LocalDateTime.now());
-                alertaRepository.save(alerta);
-                log.info("Fecha de último envío actualizada para la alerta ID: {}", alerta.getId());
-            } else {
-                log.info("Alerta de {} detectada, pero se respeta el intervalo de {} min para el correo {}. No se envía ahora.", tipoRecurso, intervalo, alerta.getCorreoDestino());
+    
+    @Scheduled(cron = "0 */5 * * * ?")
+    public void revisarYNotificarAlertas() {
+        log.info("Iniciando ciclo de revisión de notificaciones...");
+        List<Alerta> todasLasAlertasConfiguradas = alertaRepository.findAll();
+        for (Alerta alerta : todasLasAlertasConfiguradas) {
+            if (esHoraDeRevisar(alerta)) {
+                procesarReporteParaAlerta(alerta);
             }
         }
     }
-    
-    
-    
-    private String construirCuerpoCorreo(String mensajePersonalizado, SystemResourceDto metricas) {
-       
-        
+
+    private boolean esHoraDeRevisar(Alerta alerta) {
+        LocalDateTime ultimoEnvio = alerta.getUltimaNotificacionEnviada();
+        Integer intervalo = alerta.getIntervaloMinutos();
+        if (ultimoEnvio == null || ultimoEnvio.plusMinutes(intervalo).isBefore(LocalDateTime.now())) {
+            log.info("Es hora de revisar las alertas para {} (recurso: {}).", alerta.getCorreoDestino(), alerta.getTipoRecurso());
+            return true;
+        }
+        return false;
+    }
+
+    private void procesarReporteParaAlerta(Alerta alerta) {
+        Optional<Umbral> umbralOpt = umbralRepository.findByTipoRecurso(alerta.getTipoRecurso());
+        if (umbralOpt.isEmpty()) {
+            log.warn("No se encontró un umbral para el recurso {}, no se puede procesar la alerta ID {}.", alerta.getTipoRecurso(), alerta.getId());
+            return;
+        }
+        Umbral umbral = umbralOpt.get();
+
+        LocalDateTime fechaDesde = (alerta.getUltimaNotificacionEnviada() != null) 
+            ? alerta.getUltimaNotificacionEnviada() 
+            : LocalDateTime.now().minusMinutes(alerta.getIntervaloMinutos());
+            
+        List<MetricaHistorial> historialRelevante = metricaHistorialRepository.findByFechaHoraAfter(fechaDesde);
+
+        List<MetricaHistorial> metricasSuperadas = historialRelevante.stream()
+            .filter(metrica -> valorSuperaUmbral(alerta.getTipoRecurso(), metrica, umbral))
+            .collect(Collectors.toList());
+
+        if (!metricasSuperadas.isEmpty()) {
+            String cuerpoCorreo = construirCuerpoCorreoResumen(alerta, umbral, metricasSuperadas, fechaDesde); // Se pasa la fecha de inicio
+            String asunto = String.format("Resumen de Alertas SVITS: %s", alerta.getTipoRecurso());
+            mailService.enviarCorreoAlerta(alerta.getCorreoDestino(), asunto, cuerpoCorreo);
+            alerta.setUltimaNotificacionEnviada(LocalDateTime.now());
+            alertaRepository.save(alerta);
+            log.info("Reporte enviado y fecha actualizada para alerta ID {}", alerta.getId());
+        } else {
+            log.info("No se superó el umbral para {} en el periodo revisado para la alerta ID {}.", alerta.getTipoRecurso(), alerta.getId());
+            // Actualizamos la fecha de todos modos para no volver a revisar hasta el próximo intervalo
+            alerta.setUltimaNotificacionEnviada(LocalDateTime.now());
+            alertaRepository.save(alerta);
+        }
+    }
+
+    // ===== INICIO: MÉTODO DE CONSTRUCCIÓN DE CORREO CORREGIDO Y MÁS CLARO =====
+    private String construirCuerpoCorreoResumen(Alerta alerta, Umbral umbral, List<MetricaHistorial> metricasSuperadas, LocalDateTime fechaDesde) {
+        MetricaHistorial picoMetrica = metricasSuperadas.stream()
+            .max(Comparator.comparing(m -> getValorPorRecurso(alerta.getTipoRecurso(), m)))
+            .orElse(null);
+
+        double picoMaximo = 0;
+        String horaPico = "N/A";
+        if (picoMetrica != null) {
+            picoMaximo = getValorPorRecurso(alerta.getTipoRecurso(), picoMetrica);
+            horaPico = picoMetrica.getFechaHora().format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+        }
+
+        SystemResourceDto metricasActuales = systemMonitorService.getLatestMetrics();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+        LocalDateTime fechaHasta = LocalDateTime.now();
+
+        // ** LA CORRECCIÓN ESTÁ AQUÍ **
         return String.format(
             "%s\n\n" +
-            "--- Estado Actual del Sistema ---\n" +
+            "===============================================================\n" +
+            "Resumen de Alerta para el Recurso: %s\n" +
+            "Periodo Analizado: %s al %s\n" +
+            "Frecuencia de Notificación Configurada: Cada %d minutos\n" +
+            "===============================================================\n\n" +
+            "Se ha detectado un comportamiento anómalo que requiere tu atención.\n\n" +
+            "- Nivel de Alerta Alcanzado: %s\n" +
+            "- Umbral Configurado: > %.2f%%\n" +
+            "- Pico Máximo Registrado: %.2f%% (alcanzado a las %s)\n" + 
+            "- Número de Veces Superado: %d veces\n\n" +
+            "--- Estado del Sistema al momento del envío (%s) ---\n" +
             "- CPU: %.2f%%\n" +
             "- RAM: %.2f%%\n" +
             "- Disco: %.2f%%",
-            mensajePersonalizado,
-            (double) metricas.getCpuUsage(),
-            (double) metricas.getMemoryUsage(),
-            (double) metricas.getDiskUsage()
+            alerta.getMensaje(),
+            alerta.getTipoRecurso(),
+            fechaDesde.format(formatter),
+            fechaHasta.format(formatter),
+            alerta.getIntervaloMinutos(),
+            umbral.getNivelAlerta(),
+            (double) umbral.getPorcentaje(),
+            picoMaximo,
+            horaPico,
+            metricasSuperadas.size(),
+            fechaHasta.format(DateTimeFormatter.ofPattern("HH:mm")),
+            (double) metricasActuales.getCpuUsage(),
+            (double) metricasActuales.getMemoryUsage(),
+            (double) metricasActuales.getDiskUsage()
         );
     }
     
+    private double getValorPorRecurso(String tipoRecurso, MetricaHistorial metrica) {
+        switch (tipoRecurso.toUpperCase()) {
+            case "CPU": return metrica.getUsoCpu();
+            case "RAM": return metrica.getUsoRam();
+            case "DISCO": return metrica.getUsoDisco();
+            default: return 0.0;
+        }
+    }
     
+    private boolean valorSuperaUmbral(String tipoRecurso, MetricaHistorial metrica, Umbral umbral) {
+        return getValorPorRecurso(tipoRecurso, metrica) > umbral.getPorcentaje();
+    }
     
     private void guardarMetricaEnHistorial(SystemResourceDto metricas) {
         List<Umbral> umbrales = umbralRepository.findAll();
