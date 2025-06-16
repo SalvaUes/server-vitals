@@ -46,6 +46,11 @@
     <div class="main-content" id="mainContent">
         <header class="dashboard-header">
             <h1>SVITS - Server Vitals</h1>
+            <div class="export-button-container" style="margin-bottom: 10px;">
+                <button id="exportPDF" class="btn btn-danger">
+                    <i class="fas fa-file-pdf"></i> Exportar PDF
+                </button>
+            </div>
             <div class="server-info">
                 <div id="serverName">Servidor: <strong id="serverNameValue">Conectando...</strong></div>
                 <div class="server-status status-connecting" id="serverStatus">Conectando</div>
@@ -126,8 +131,11 @@
     <button class="btn btn-health" id="btnHealth" aria-controls="healthChecksSection">
         <i class="fas fa-database" aria-hidden="true"></i> Mostrar Health Checks
     </button>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script th:src="@{/js/dashboard.js}"></script>
 </body>
 </html>

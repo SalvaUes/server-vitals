@@ -190,4 +190,31 @@ document.addEventListener('DOMContentLoaded', function () {
         
         console.log("No es la página del Dashboard. La conexión SSE no se iniciará.");
     }
+
+document.getElementById("exportPDF").addEventListener("click", function () {
+    const element = document.getElementById("mainContent"); // Todo el contenido a exportar
+
+    html2canvas(element, { scale: 2 }).then(canvas => {
+        const imgData = canvas.toDataURL("image/png");
+        const pdf = new jspdf.jsPDF("p", "mm", "a4");
+        const pageWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pageWidth;
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+        let position = 10;
+
+        if (pdfHeight > pageHeight) {
+            // Si el contenido es más grande que una página, escalarlo
+            pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pageHeight - 20);
+        } else {
+            pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
+        }
+
+        pdf.save("dashboard.pdf");
+    });
+});
+
 });
