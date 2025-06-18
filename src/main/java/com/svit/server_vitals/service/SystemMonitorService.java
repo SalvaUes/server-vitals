@@ -14,6 +14,10 @@ import oshi.software.os.OperatingSystem;
 import jakarta.annotation.PostConstruct;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import com.svit.server_vitals.model.LogLevel;
+
+
+
 
 @Service
 public class SystemMonitorService {
@@ -27,6 +31,7 @@ public class SystemMonitorService {
     private final CentralProcessor processor = hal.getProcessor();
     private final GlobalMemory memory = hal.getMemory();
     private final Sensors sensors = hal.getSensors();
+    
 
     
     private long[] prevCpuTicks;
@@ -35,7 +40,11 @@ public class SystemMonitorService {
 
     private final AtomicReference<SystemResourceDto> latestMetrics = new AtomicReference<>();
 
-    
+    private final EventLogService eventLogService;
+    public SystemMonitorService(EventLogService eventLogService) {
+    this.eventLogService = eventLogService;
+    }
+
     
         
     @PostConstruct
@@ -56,6 +65,7 @@ public class SystemMonitorService {
         }
         updateMetrics(); 
         log.info("SystemMonitorService initialized.");
+
     }
 
   
@@ -140,6 +150,16 @@ public class SystemMonitorService {
         this.latestMetrics.set(dto);
 
         log.debug("Metrics updated: CPU {}%", dto.getCpuUsage());
+
+        eventLogService.log(
+        LogLevel.INFO,
+        "Métricas del sistema actualizadas correctamente",
+        String.format("CPU: %d%%, RAM: %d%%, Disco: %d%%", 
+                  dto.getCpuUsage(), 
+                  dto.getMemoryUsage(), 
+                  dto.getDiskUsage()),
+        "Servidor: " + dto.getServerName()
+         );
     }
 
     

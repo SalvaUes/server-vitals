@@ -29,13 +29,16 @@ public class MonitoreoService {
     private final MailService mailService;
     private final SystemMonitorService systemMonitorService;
     private final MetricaHistorialRepository metricaHistorialRepository;
+    private final EventLogService eventLogService;
 
-    public MonitoreoService(UmbralRepository umbralRepository, AlertaRepository alertaRepository, MailService mailService, SystemMonitorService systemMonitorService, MetricaHistorialRepository metricaHistorialRepository) {
+
+    public MonitoreoService(UmbralRepository umbralRepository, AlertaRepository alertaRepository, MailService mailService, SystemMonitorService systemMonitorService, MetricaHistorialRepository metricaHistorialRepository, EventLogService eventLogService) {
         this.umbralRepository = umbralRepository;
         this.alertaRepository = alertaRepository;
         this.mailService = mailService;
         this.systemMonitorService = systemMonitorService;
         this.metricaHistorialRepository = metricaHistorialRepository;
+        this.eventLogService = eventLogService;
     }
 
     @Scheduled(cron = "0 */5 * * * ?")
@@ -94,7 +97,9 @@ public class MonitoreoService {
             log.info("Reporte enviado y fecha actualizada para alerta ID {}", alerta.getId());
         } else {
             log.info("No se superó el umbral para {} en el periodo revisado para la alerta ID {}.", alerta.getTipoRecurso(), alerta.getId());
-            
+          
+            eventLogService.log(LogLevel.INFO, String.format("No se superó el umbral para recurso %s en la alerta ID %d", alerta.getTipoRecurso(), alerta.getId()), "TipoRecurso: " + alerta.getTipoRecurso(), "ID Alerta: " + alerta.getId());
+
             
             alerta.setUltimaNotificacionEnviada(LocalDateTime.now());
             alertaRepository.save(alerta);
@@ -181,6 +186,18 @@ public class MonitoreoService {
         metrica.setUsoDisco(metricas.getDiskUsage());
         metrica.setNivelAlerta(nivelActual);
         metricaHistorialRepository.save(metrica);
+
+        log.info("Métrica de sistema registrada en historial con nivel de alerta: {}", nivelActual);
+        eventLogService.log(
+        LogLevel.INFO,
+        String.format("Métrica registrada con nivel de alerta: %s", nivelActual),
+        String.format("CPU: %d%%", metricas.getCpuUsage()),
+        String.format("RAM: %d%%, DISCO: %d%%", 
+                  metricas.getMemoryUsage(), 
+                  metricas.getDiskUsage())
+    );
+
+
     }
 
     private boolean umbralSuperado(Umbral umbral, SystemResourceDto metricas) {
