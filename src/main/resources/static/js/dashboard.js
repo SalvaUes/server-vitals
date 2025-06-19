@@ -25,6 +25,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const CIRCLE_RADIUS = parseFloat(cpuCircle?.getAttribute('r') || 70);
     const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS;
 
+    document.getElementById('btnDownloadPdf').addEventListener('click', function () {
+    window.location.href = '/dashboard/pdf';
+    });
+
+
     function updateProgressRing(circle, value) {
         if (!circle) return;
         const percentage = Math.max(0, Math.min(100, value || 0));
