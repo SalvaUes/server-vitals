@@ -3,6 +3,7 @@ package com.svit.server_vitals.service;
 import com.svit.server_vitals.model.EventLog;
 import com.svit.server_vitals.model.LogLevel;
 import com.svit.server_vitals.repository.EventLogRepository;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,5 +32,9 @@ public class EventLogService {
 
     public void logWarn(String mensaje, String origen) {
         log(LogLevel.WARN, mensaje, null, origen);
+    }
+    
+    public List<EventLog> obtenerTodosLosLogs() {
+        return eventLogRepository.findAllByOrderByFechaRegistroDesc();
     }
 }

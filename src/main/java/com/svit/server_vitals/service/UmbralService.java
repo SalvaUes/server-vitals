@@ -54,15 +54,15 @@ public class UmbralService {
         );
         return saved;
 
-    } catch (Exception e) {
-        eventLogService.log(
-            LogLevel.ERROR,
-            String.format("Excepción al guardar Umbral para recurso: %s", umbral.getTipoRecurso()),
-            e.getMessage(),
-            "Origen: UmbralService.save"
-        );
-        throw e; // opcionalmente relanzar la excepción si deseas
-    }
+   } catch (Exception e) {
+    eventLogService.log(
+        LogLevel.ERROR,
+        String.format("Excepción al guardar Umbral para recurso: %s", umbral.getTipoRecurso()),
+        e.getMessage(),
+        "Origen: UmbralService.save"
+    );
+    throw e;
+}
 
     }
 
