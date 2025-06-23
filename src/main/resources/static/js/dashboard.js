@@ -2,8 +2,8 @@ document.addEventListener('DOMContentLoaded', function () {
     const sidebar = document.getElementById('sidebar');
     const mainContent = document.getElementById('mainContent');
     const toggleBtn = document.getElementById('toggleSidebar');
-    const btnHealth = document.getElementById('btnHealth');
-    const healthSection = document.getElementById('healthChecksSection');
+     const btnHealth = document.querySelector('#btnHealth');
+const healthSection = document.querySelector('#healthSection');
     const serverStatusElement = document.getElementById('serverStatus');
 
     const cpuCircle = document.getElementById('cpuCircle');
@@ -130,48 +130,91 @@ document.addEventListener('DOMContentLoaded', function () {
         console.warn("Sidebar elements not found");
     }
 
-    if (btnHealth && healthSection) {
-        btnHealth.addEventListener('click', () => {
-            const isHidden = healthSection.style.display === 'none' || healthSection.style.display === '';
-            healthSection.style.display = isHidden ? 'block' : 'none';
-            btnHealth.innerHTML = `<i class="fas fa-database"></i> ${isHidden ? 'Ocultar' : 'Mostrar'} Health Checks`;
+     // 1) Función que pide el estado y actualiza las tarjetas
+  function updateHealth() {
+    console.log('🔄 updateHealth() llamado a las', new Date().toLocaleTimeString());
 
-            if (isHidden) {
-                // Solo consultar si se va a mostrar
-                fetch('/databases/status')
-                    .then(res => res.json())
-                    .then(statuses => {
-                        const dbCards = document.querySelectorAll('.db-card');
-                        dbCards.forEach(card => {
-                          const dbName = card.querySelector('h4')?.innerText.trim();
-                          const badge = card.querySelector('.status-badge');
-                          if (statuses[dbName]) {
-                            const status = statuses[dbName];
-                            badge.textContent = status;
-                            badge.classList.remove('status-healthy', 'status-warning', 'status-critical');
-                    
-                            if (status === 'Operativo') {
-                              badge.classList.add('status-healthy');
-                            } else if (status === 'Advertencia') {
-                              badge.classList.add('status-warning');
-                            } else {
-                              badge.classList.add('status-critical');
-                            }
-                          } else {
-                            badge.textContent = 'Desconocido';
-                            badge.classList.remove('status-healthy', 'status-warning', 'status-critical');
-                            badge.classList.add('status-critical');
-                          }
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Error al obtener estados de bases de datos:', error);
-                    });
+    // Tomamos tiempo de inicio para medir HTTP
+    const startFetch = performance.now();
+    // Le añadimos un param _=timestamp para bustear cache
+    const url = '/api/databases/status?_=' + Date.now();
+
+    fetch(url, { cache: 'no-store' })
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP status ${res.status}`);
+        }
+        return res.json();
+      })
+      .then(json => {
+        const httpMs = (performance.now() - startFetch).toFixed(2);
+        console.log('  → datos recibidos:', json, `HTTP ${httpMs} ms`);
+
+        document.querySelectorAll('.db-card').forEach(card => {
+          const name  = card.querySelector('h4').innerText.trim();
+          const badge = card.querySelector('.status-badge');
+          const info  = json[name];
+
+          if (info) {
+            // Tiempo BD en segundos
+            const bdSecs = (info.responseTimeMs / 1000).toFixed(2) + ' s';
+            // Escribimos dos spans (evitamos usar <div> dentro de <span>)
+                    badge.innerHTML = `
+                <span class="line1">
+                ${info.active ? 'Operativo' : 'No disponible'}
+                </span>
+                <span class="line2">
+                BD: ${bdSecs}
+                </span>
+                <span class="line3">
+                HTTP: ${httpMs} ms
+                </span>
+            `;
+
+            badge.classList.remove('status-healthy','status-warning','status-critical');
+            if (info.active) {
+              badge.classList.add(
+                info.responseTimeMs > 1000 ? 'status-warning' : 'status-healthy'
+              );
+            } else {
+              badge.classList.add('status-critical');
             }
+          } else {
+            badge.textContent = 'Desconocido';
+            badge.className = 'status-badge status-critical';
+          }
         });
-    } else {
-        console.warn("Health check elements not found");
-    }
+      })
+      .catch(err => {
+        console.error('❌ Error en fetch de estados:', err);
+        // Si falla, marcamos todos en crítico
+        document.querySelectorAll('.db-card .status-badge')
+          .forEach(b => {
+            b.textContent = 'No disponible';
+            b.className = 'status-badge status-critical';
+          });
+      });
+  }
+
+  // 2) Arranca YA y luego cada 30 s
+  updateHealth();
+  setInterval(updateHealth, 15000);
+
+
+  // 3) Click del botón solo alterna visibilidad
+  if (btnHealth && healthSection) {
+    btnHealth.addEventListener('click', () => {
+      const wasHidden = healthSection.style.display === 'none';
+      healthSection.style.display = wasHidden ? 'block' : 'none';
+      btnHealth.innerHTML = `
+        <i class="fas fa-database"></i>
+        ${wasHidden ? 'Ocultar' : 'Mostrar'} Health Checks
+      `;
+    });
+  } else {
+    console.warn('Health check elements not found');
+  }
+  
 
     [cpuCircle, ramCircle, diskCircle].forEach(circle => {
         if (circle) {

@@ -386,6 +386,19 @@
     box-shadow: 0 4px 15px rgba(67, 97, 238, 0.3);
     transition: all 0.3s;
   }
+
+  .status-badge span {
+  display: block;
+}
+.status-badge .line1 {
+  font-weight: bold;
+}
+.status-badge .line2,
+.status-badge .line3 {
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
   
 
 
